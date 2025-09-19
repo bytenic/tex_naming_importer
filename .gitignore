@@ -76,3 +76,4 @@ DerivedDataCache/*
 
 .idea
 .vs
+**/__pycache__/

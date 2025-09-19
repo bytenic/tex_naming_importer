@@ -1,0 +1,14 @@
+{
+  "texture_type": ["col", "msk", "nml", "mat", "cub", "flw"],
+  "address_suffix_2d": {
+    "cc":["CLAMP", "CLAMP"],
+    "cw":["CLAMP", "WRAP"],
+    "cm":["CLAMP", "MIRROR"],
+    "wc":["WRAP", "CLAMP"],
+    "ww":["WRAP", "WRAP"],
+    "wm":["WRAP", "MIRROR"],
+    "mc":["MIRROR", "CLAMP"],
+    "mw":["MIRROR", "WRAP"],
+    "mm":["MIRROR", "MIRROR"]
+  }
+}

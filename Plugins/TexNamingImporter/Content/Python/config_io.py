@@ -4,6 +4,7 @@ from typing import Dict, Optional, Any, Union
 
 from type_define import (
     TextureConfigParams,
+    TextureSuffixConfig,
     AddressMode,
     CompressionKind,
     SRGBMode,
@@ -131,3 +132,23 @@ def load_params_map_json(file_path: Union[str, Path]) -> Dict[str, TextureConfig
             raise ValueError(f"value for key '{key}' must be an object")
         out[key] = _params_from_dict(val)
     return out
+
+
+def load_texture_suffix_config(file_path: Union[str, Path]) -> TextureSuffixConfig:
+    """独立ユーティリティ：JSONファイルから TextureSuffixConfig を読み込む。"""
+    p = Path(file_path)
+    with p.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+    try:
+        return TextureSuffixConfig.from_dict(data)
+    except Exception as e:
+        # ファイル名を含むエラーで原因が追いやすいように
+        raise ValueError(f"failed to load TextureSuffixConfig from '{p}': {e}") from e
+
+def save_texture_suffix_config(cfg: TextureSuffixConfig, file_path: Union[str, Path], *,
+                               indent: int = 2, ensure_ascii: bool = False) -> None:
+    """独立ユーティリティ：TextureSuffixConfig を JSON へ保存。"""
+    p = Path(file_path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with p.open("w", encoding="utf-8") as f:
+        json.dump(cfg.to_dict(), f, indent=indent, ensure_ascii=ensure_ascii)
