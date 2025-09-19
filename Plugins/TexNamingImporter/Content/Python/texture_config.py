@@ -1,16 +1,87 @@
+from dataclasses import dataclass
+from typing import Optional, Union, Tuple, Dict, List, Tuple,Any
 import json
 from pathlib import Path
-from typing import Dict, Optional, Any, Union
 
-from type_define import (
-    TextureConfigParams,
-    TextureSuffixConfig,
-    AddressMode,
-    CompressionKind,
-    SRGBMode,
-    SizePreset,
-    NumericSize,
-)
+from type_define import AddressMode, SizePreset, CompressionKind, SRGBMode
+
+NumericSize = Union[int, SizePreset]
+
+# =========================
+# 設定値コンテナ（専用dataclass）
+# =========================
+@dataclass
+class TextureConfigParams:
+    # アドレスモード（U/V はセットで使うのが自然。Zは3D/Cube等で任意）
+    address_u: Optional[AddressMode] = None
+    address_v: Optional[AddressMode] = None
+    address_z: Optional[AddressMode] = None
+
+    # ゲーム中最大サイズ（0 or SizePreset.AUTO で無制限）
+    max_in_game: Optional[NumericSize] = None
+    enforce_pow2: bool = False
+
+    # 圧縮設定 & sRGB
+    compression: Optional[CompressionKind] = None
+    srgb: Optional[SRGBMode] = None
+
+    # 共通動作
+    save: bool = True
+    silent: bool = False
+
+
+def overwrite_address_uv(params: TextureConfigParams, u: AddressMode, v: AddressMode) -> TextureConfigParams:
+    """
+    TextureConfigParams の address_u / address_v を“破壊的（in-place）”に上書きします。
+    clear_z=True の場合、address_z を None にクリアします（3D/Cube等でU/Vのみ使いたいときに便利）。
+    戻り値は同じインスタンス（チェーン用に返すだけ）。
+    """
+    if not isinstance(params, TextureConfigParams):
+        raise TypeError("params must be TextureConfigParams")
+    if not isinstance(u, AddressMode) or not isinstance(v, AddressMode):
+        raise TypeError("u, v must be AddressMode")
+
+    params.address_u = u
+    params.address_v = v
+    return params
+
+def _normalize_max_size(v: NumericSize, *, clamp_range: bool = True) -> int:
+    """
+    SizePreset/int -> int に正規化。0 は無制限。
+    clamp_range=True の場合、Unreal想定に合わせて 0 or [16, 4096] にクランプ。
+    """
+    if isinstance(v, SizePreset):
+        px = int(v)
+    elif isinstance(v, int):
+        px = max(0, v)
+    else:
+        raise TypeError("max_size must be int or SizePreset")
+    if clamp_range and px > 0:
+        px = max(16, min(px, 4096))
+    return px
+
+def overwrite_max_in_game(
+    params: TextureConfigParams,
+    max_size: NumericSize,
+    *,
+    enforce_pow2: Optional[bool] = None,
+    clamp_range: bool = True
+) -> TextureConfigParams:
+    """
+    読み込んだ TextureConfigParams の max_in_game を“破壊的”に上書きします。
+    - max_size: SizePreset か int（0 は無制限）
+    - enforce_pow2: None の場合は既存値を維持。True/False で同時更新。
+    - clamp_range: True なら 0 or [16, 16384] にクランプ
+    戻り値は同じインスタンス（チェーン用）。
+    """
+    if not isinstance(params, TextureConfigParams):
+        raise TypeError("params must be TextureConfigParams")
+
+    params.max_in_game = _normalize_max_size(max_size, clamp_range=clamp_range)
+    if enforce_pow2 is not None:
+        params.enforce_pow2 = bool(enforce_pow2)
+    return params
+
 
 # ---------- 単一 params のシリアライズ / デシリアライズ ----------
 
@@ -132,23 +203,3 @@ def load_params_map_json(file_path: Union[str, Path]) -> Dict[str, TextureConfig
             raise ValueError(f"value for key '{key}' must be an object")
         out[key] = _params_from_dict(val)
     return out
-
-
-def load_texture_suffix_config(file_path: Union[str, Path]) -> TextureSuffixConfig:
-    """独立ユーティリティ：JSONファイルから TextureSuffixConfig を読み込む。"""
-    p = Path(file_path)
-    with p.open("r", encoding="utf-8") as f:
-        data = json.load(f)
-    try:
-        return TextureSuffixConfig.from_dict(data)
-    except Exception as e:
-        # ファイル名を含むエラーで原因が追いやすいように
-        raise ValueError(f"failed to load TextureSuffixConfig from '{p}': {e}") from e
-
-def save_texture_suffix_config(cfg: TextureSuffixConfig, file_path: Union[str, Path], *,
-                               indent: int = 2, ensure_ascii: bool = False) -> None:
-    """独立ユーティリティ：TextureSuffixConfig を JSON へ保存。"""
-    p = Path(file_path)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    with p.open("w", encoding="utf-8") as f:
-        json.dump(cfg.to_dict(), f, indent=indent, ensure_ascii=ensure_ascii)
