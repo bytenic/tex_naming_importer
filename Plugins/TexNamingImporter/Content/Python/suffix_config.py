@@ -17,11 +17,12 @@ class TextureSuffixConfig:
     - texture_type: ["col","msk","nml","mat","cub","flw"] など
     - address_suffix_2d: {"ww": (WRAP, WRAP), "cw": (CLAMP, WRAP), ...}
     - address_suffix_3d: {"ww": (WRAP, WRAP, WRAP), ...}
+    - suffix_index: ["texture_type", "address_suffix_2d"] など、サフィックスの優先探索順序
     """
     texture_type: List[str]
     address_suffix_2d: Dict[str, AddressPair]
     address_suffix_3d: Dict[str, AddressTriple]
-
+    suffix_index: List[str]
     # ---------- 変換ユーティリティ ----------
     @staticmethod
     def _to_addr(x: Union[str, AddressMode]) -> AddressMode:
@@ -85,8 +86,12 @@ class TextureSuffixConfig:
         # いずれも無ければエラー
         if not map2d and not map3d:
             raise ValueError("no address suffix mapping found (2D/3D)")
+        
+        suf_index = data.get("suffix_index")
+        if not isinstance(suf_index, list) or not all(isinstance(x, str) for x in v):
+            raise ValueError("'suffix_index' must be a list[str]")
 
-        return cls(texture_type=tt, address_suffix_2d=map2d, address_suffix_3d=map3d)
+        return cls(texture_type=tt, address_suffix_2d=map2d, address_suffix_3d=map3d, suffix_index=suf_index)
 
     @classmethod
     def load(cls, file_path: Union[str, Path]) -> "TextureSuffixConfig":

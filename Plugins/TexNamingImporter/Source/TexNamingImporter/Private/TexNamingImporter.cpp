@@ -51,9 +51,6 @@ void FTexNamingImporterModule::StartupModule()
 	ResolvePythonDir();
 	
 	Listener = TStrongObjectPtr<UTextureImportBridgeListener>(NewObject<UTextureImportBridgeListener>());
-	//Listener->AddToRoot();
-	//FEditorDelegates::AddRaw(this, &FTextureImportPythonBridgeModule::BindImportDelegatesOnce);
-	//FCoreDelegates::OnPostEngineInit.AddRaw(this,)
 	Listener->Initialize(FOnTextureImported::CreateRaw(this, &FTexNamingImporterModule::HandleTexturePostImport));
 	
 }
@@ -122,7 +119,7 @@ void FTexNamingImporterModule::RunPythonForTexture(class UTexture* Texture)
 	const FString ObjectPath = Texture->GetPathName();
 	if (IPythonScriptPlugin::Get() != nullptr)
 	{
-		const bool bOk = RunPythonFile(TEXT("hello.py"),
+		const bool bOk = RunPythonFile(TEXT("import_texture_event.py"),
 	{
 				FString::Format(TEXT("--object-path={0}"), {FStringFormatArg(ObjectPath)}),
 			});
