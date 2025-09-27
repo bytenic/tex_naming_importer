@@ -43,6 +43,21 @@ class TextureSuffixConfig:
         if not isinstance(val, (list, tuple)) or len(val) != 3:
             raise ValueError(f"3D address must be length-3 list/tuple, got: {val!r}")
         return (cls._to_addr(val[0]), cls._to_addr(val[1]), cls._to_addr(val[2]))
+    
+    def allowed_keys(self, category: str) -> List[str]:
+        """
+        category に対して許容される「キー」の一覧を返す。
+        - 配列型（例: texture_type）: そのまま要素をキーとして扱う
+        - 辞書型（例: address_suffix_2d/3d）: dict のキーを返す
+        """
+        if not hasattr(self, category):
+            return []
+        value = getattr(self, category)
+        if isinstance(value, list):
+            return [str(v).lower() for v in value]
+        if isinstance(value, dict):
+            return [str(k).lower() for k in value.keys()]
+        return []
 
     # ---------- dict / JSON I/O ----------
     @classmethod
