@@ -18,7 +18,12 @@
 		{
 			"Name": "TexNamingImporter",
 			"Type": "Editor",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "PostEngineInit"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "PythonScriptPlugin", "Enabled": true 
 		}
 	]
 }

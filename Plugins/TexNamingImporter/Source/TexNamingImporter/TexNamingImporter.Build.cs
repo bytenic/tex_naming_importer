@@ -7,7 +7,7 @@ public class TexNamingImporter : ModuleRules
 	public TexNamingImporter(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
+		Type = ModuleType.CPlusPlus;
 		PublicIncludePaths.AddRange(
 			new string[] {
 				// ... add public include paths required here ...
@@ -43,10 +43,17 @@ public class TexNamingImporter : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"EditorSubsystem",
+				"AssetRegistry",
+				"Projects", // IPluginManager
+				"PythonScriptPlugin" // FPythonScriptPlugin
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
-		
+		if (Target.bBuildEditor == true)
+		{
+			PrivateDependencyModuleNames.Add("EditorFramework");
+		}
 		
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
