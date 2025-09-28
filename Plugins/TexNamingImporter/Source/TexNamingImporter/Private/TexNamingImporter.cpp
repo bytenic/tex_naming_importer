@@ -121,7 +121,7 @@ void FTexNamingImporterModule::RunPythonForTexture(class UTexture* Texture)
 	{
 		const bool bOk = RunPythonFile(TEXT("import_texture_event.py"),
 	{
-				FString::Format(TEXT("--object-path={0}"), {FStringFormatArg(ObjectPath)}),
+				FString::Format(TEXT("{0}"), {FStringFormatArg(ObjectPath)}),
 			});
 		if (!bOk)
 		{

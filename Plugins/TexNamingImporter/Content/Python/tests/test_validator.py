@@ -10,7 +10,7 @@ if str(PYTHON_DIR) not in sys.path:
     sys.path.insert(0, str(PYTHON_DIR))
 
 # 被テスト対象
-from validator import validate_suffixes, ValidationResult, build_suffix_grid
+from validator import validate_suffixes, SuffixValidationResult, build_suffix_grid
 from suffix_config import TextureSuffixConfig, load_texture_suffix_config
 
 
@@ -53,14 +53,14 @@ class TestValidateSuffixes(unittest.TestCase):
     def test_ok_basic(self):
         """設定から作った合法なサフィックス列は OK になる。"""
         suffix_list = self._pick_valid_suffix_list()
-        res: ValidationResult = validate_suffixes(suffix_list, self.suffix_grid)
+        res: SuffixValidationResult = validate_suffixes(suffix_list, self.suffix_grid)
         self.assertTrue(res.ok, f"想定OKなのにNG: {res.error}")
         self.assertEqual(res.matches_by_row, suffix_list)
 
     def test_ok_case_insensitive(self):
         """大文字小文字無視でマッチすること（合法列を大文字化して検証）。"""
         suffix_list = [s.upper() for s in self._pick_valid_suffix_list()]
-        res: ValidationResult = validate_suffixes(suffix_list, self.suffix_grid)
+        res: SuffixValidationResult = validate_suffixes(suffix_list, self.suffix_grid)
         self.assertTrue(res.ok, f"大小無視のはずがNG: {res.error}")
         self.assertEqual(res.matches_by_row, suffix_list)
 
@@ -72,7 +72,7 @@ class TestValidateSuffixes(unittest.TestCase):
         if len(valid) == 0:
             self.skipTest("suffix_grid が空です。")
         shorter = valid[:-1]  # 1つ減らす
-        res: ValidationResult = validate_suffixes(shorter, self.suffix_grid)
+        res: SuffixValidationResult = validate_suffixes(shorter, self.suffix_grid)
         self.assertFalse(res.ok)
         self.assertIsNone(res.failed_row_index)  # 実装では長さ不一致は None
         self.assertIn("一致しません", res.error or "")
@@ -83,7 +83,7 @@ class TestValidateSuffixes(unittest.TestCase):
         """行数(=カテゴリ数)より長い場合も NG を返す（= テストは成功）。"""
         valid = self._pick_valid_suffix_list()
         longer = valid + ["__extra__"]
-        res: ValidationResult = validate_suffixes(longer, self.suffix_grid)
+        res: SuffixValidationResult = validate_suffixes(longer, self.suffix_grid)
         self.assertFalse(res.ok)
         self.assertIsNone(res.failed_row_index)
         self.assertIn("一致しません", res.error or "")
@@ -94,7 +94,7 @@ class TestValidateSuffixes(unittest.TestCase):
         valid = self._pick_valid_suffix_list()
         invalid = list(valid)
         invalid[0] = "__invalid__"
-        res: ValidationResult = validate_suffixes(invalid, self.suffix_grid)
+        res: SuffixValidationResult = validate_suffixes(invalid, self.suffix_grid)
         self.assertFalse(res.ok)
         self.assertEqual(res.failed_row_index, 0)
         self.assertIn("許容値", res.error or "")
@@ -111,7 +111,7 @@ class TestValidateSuffixes(unittest.TestCase):
         invalid = list(valid)
         last = len(invalid) - 1
         invalid[last] = "__invalid__"
-        res: ValidationResult = validate_suffixes(invalid, self.suffix_grid)
+        res: SuffixValidationResult = validate_suffixes(invalid, self.suffix_grid)
         self.assertFalse(res.ok)
         self.assertEqual(res.failed_row_index, last)
         self.assertIn("許容値", res.error or "")
