@@ -1,5 +1,13 @@
 import unittest
-from path_utils import collect_suffixes_from_path
+import sys
+from pathlib import Path
+
+THIS_FILE = Path(__file__).resolve()
+PYTHON_DIR = THIS_FILE.parents[1]
+if str(PYTHON_DIR) not in sys.path:
+    sys.path.insert(0, str(PYTHON_DIR))
+
+from path_utils.path_functions import collect_suffixes_from_path
 
 SUFFIX_ARRAY = ["cc","cw","cm","wc","ww","wm","mc","mw","mm","col","msk","nml","mat","cub","flw"]
 
