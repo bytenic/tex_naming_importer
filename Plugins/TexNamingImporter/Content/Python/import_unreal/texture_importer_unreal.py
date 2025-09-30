@@ -1,15 +1,49 @@
 import math
+import sys
+from pathlib import Path
 import unreal
 from enum import Enum, IntEnum
 from typing import Optional, Union, Dict, List
+
+_THIS_DIR = Path(__file__).resolve().parent
+if str(_THIS_DIR) not in sys.path:
+    sys.path.insert(0, str(_THIS_DIR))
+
+from texture_config import TextureConfigParams, NumericSize
 from type_define import (
-    TextureConfigParams,
     AddressMode,
     CompressionKind,
     SRGBMode,
-    SizePreset,
-    NumericSize
+    SizePreset
 ) 
+
+def _get_texture_from_path(path: str) -> unreal.Texture:
+    """
+    /Game から始まるパスからテクスチャ(UTexture系)を取得する。
+    見つからない／型が違う場合は例外を投げる。
+    """
+    # AssetRegistry でまず存在と型を確認
+    registry = unreal.AssetRegistryHelpers.get_asset_registry()
+    data = registry.get_asset_by_object_path(path)
+
+    if not data.is_valid():
+        # Registry に無い場合、EditorAssetLibrary でラストチャンス読み込み
+        asset = unreal.EditorAssetLibrary.load_asset(path)
+        if asset is None:
+            raise LookupError(f"Asset not found: {path!r} (normalized: {path!r})")
+    else:
+        asset = data.get_asset()  # ここでロード
+
+    # 型チェック（Texture の派生だけ許可）
+    # Unreal Python は isinstance も is_a も使えます。両方ケア。
+    if not (isinstance(asset, unreal.Texture) or asset.is_a(unreal.Texture)):
+        raise TypeError(
+            f"Asset is not a Texture: {asset.get_path_name()} (class={asset.get_class().get_name()})"
+        )
+
+    # 型は Texture 基底なので、必要なら Texture2D などへキャストして使う
+    return asset  # type: ignore[return-value]
+
 
 class TextureConfigurator:
     """
@@ -188,13 +222,14 @@ class TextureConfigurator:
                 del trans
 
     # ---------- 一括適用（共通エラハン） ----------
-    def apply(self, texture: unreal.Texture) -> Dict[str, Union[bool, List[str]]]:
+    def apply(self, path_name: str) -> Dict[str, Union[bool, List[str]]]:
         """
         dataclassの内容を一括反映。
         - Undo（ScopedEditorTransaction）
         - post_edit_change / mark_package_dirty / 保存（1回）
         - 各ステップの例外を収集して返す
         """
+        texture = _get_texture_from_path(path_name)
         p = self.params
         report = {"ok": True, "applied": [], "errors": []}
 
@@ -268,8 +303,7 @@ class TextureConfigurator:
                     report["errors"].append(f"srgb: {e}")
 
             # 一括反映
-            texture.post_edit_change()
-            texture.mark_package_dirty()
+            #texture.()
             if p.save:
                 unreal.EditorAssetLibrary.save_loaded_asset(texture)
 
