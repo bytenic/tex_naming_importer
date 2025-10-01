@@ -3,7 +3,6 @@
 #include "TexNamingImporter.h"
 #include "TexNamingImporterStyle.h"
 #include "TexNamingImporterCommands.h"
-#include "LevelEditor.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -20,6 +19,12 @@
 #include "Engine/Texture.h"
 #include "EditorFramework/AssetImportData.h"
 
+#include "Misc/FileHelper.h"
+#include "Misc/PackageName.h"
+#include "Dom/JsonObject.h"
+#include "Serialization/JsonSerializer.h"
+#include "Serialization/JsonReader.h"
+
 #include "TextureImportBridgeListener.h"
 
 static const FName TexNamingImporterTabName("TexNamingImporter");
@@ -28,7 +33,13 @@ static const FName TexNamingImporterTabName("TexNamingImporter");
 
 void FTexNamingImporterModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	// {ProjectDir}/Config/TexNamingImporter/DirectorySettings.json
+	SettingsFilePath = FPaths::Combine(
+		FPaths::ProjectConfigDir(),
+		TEXT("TexNamingImporter"),
+		TEXT("DirectorySettings.json"));
+
+	LoadDirectorySettings();
 	
 	FTexNamingImporterStyle::Initialize();
 	FTexNamingImporterStyle::ReloadTextures();
@@ -100,6 +111,90 @@ TSharedRef<SDockTab> FTexNamingImporterModule::OnSpawnPluginTab(const FSpawnTabA
 				.Text(WidgetText)
 			]
 		];
+}
+
+void FTexNamingImporterModule::LoadDirectorySettings()
+{
+	RunDirs.Reset();
+
+	if (!FPaths::FileExists(SettingsFilePath))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DirectorySettings.json not found: %s"), *SettingsFilePath);
+		return;
+	}
+
+	FString JsonText;
+	if (!FFileHelper::LoadFileToString(JsonText, *SettingsFilePath))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to read DirectorySettings.json: %s"), *SettingsFilePath);
+		return;
+	}
+
+	TSharedPtr<FJsonObject> RootObj;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonText);
+	if (!FJsonSerializer::Deserialize(Reader, RootObj) || !RootObj.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to parse DirectorySettings.json: %s"), *SettingsFilePath);
+		return;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* RunDirArray = nullptr;
+	if (!RootObj->TryGetArrayField(TEXT("run_dir"), RunDirArray))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Field 'run_dir' not found in DirectorySettings.json: %s"), *SettingsFilePath);
+		return;
+	}
+
+	for (const TSharedPtr<FJsonValue>& Val : *RunDirArray)
+	{
+		FString Dir;
+		if (!Val.IsValid() || !Val->TryGetString(Dir))
+		{
+			continue;
+		}
+
+		// 正規化：末尾スラッシュ除去、空白除去
+		Dir.TrimStartAndEndInline();
+
+		// 期待形式は "/Game/..." （ロングパッケージパス）
+		// 念のため末尾のスラッシュを取り除いた同形式で保持
+		if (Dir.EndsWith(TEXT("/")))
+		{
+			Dir.LeftChopInline(1);
+		}
+
+		if (!Dir.IsEmpty())
+		{
+			RunDirs.AddUnique(Dir);
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Loaded %d run_dir entries"), RunDirs.Num());
+}
+
+bool FTexNamingImporterModule::IsUnderRunDir(const FString& LongPackagePath) const
+{
+	// LongPackagePath 例: "/Game/VFX/Textures"
+	// RunDirs 例: "/Game/VFX", "/Game/Debug"
+
+	if (LongPackagePath.IsEmpty() || RunDirs.Num() == 0)
+	{
+		return false;
+	}
+
+	for (const FString& Root : RunDirs)
+	{
+		// 同一 or 配下のときに真
+		if (LongPackagePath.Equals(Root, ESearchCase::IgnoreCase))
+		{
+			return true;
+		}
+		if (LongPackagePath.StartsWith(Root + TEXT("/"), ESearchCase::IgnoreCase))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void FTexNamingImporterModule::RunPythonForTexture(class UTexture* Texture)
@@ -250,6 +345,18 @@ void FTexNamingImporterModule::HandleTexturePostImport(class UTexture* Texture)
 	{
 		return;
 	}
+	const FString PackageName = Texture->GetPathName();
+	const FString LongPackagePath = FPackageName::GetLongPackagePath(PackageName);
+
+	// 設定された run_dir 配下かチェック
+	if (!IsUnderRunDir(LongPackagePath))
+	{
+		// 異なる場所にインポートされた場合は早期リターン
+		UE_LOG(LogTemp, Verbose, TEXT("Skip: %s is not under run_dir (path=%s)"),
+			*PackageName, *LongPackagePath);
+		return;
+	}
+	
 	RunPythonForTexture(Texture);
 }
 

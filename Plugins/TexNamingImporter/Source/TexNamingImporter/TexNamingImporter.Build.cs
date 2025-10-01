@@ -42,6 +42,7 @@ public class TexNamingImporter : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
+				"Json",
 				"SlateCore",
 				"EditorSubsystem",
 				"AssetRegistry",

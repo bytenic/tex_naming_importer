@@ -41,11 +41,11 @@ def build_texture_config_params(suffixes: List[str],
     return overwrite_address_uv(base_settings, address_u, address_v)
 
 
-def _load_dir_config(path: str) -> List[str]:
-    p = Path(path)
-    with p.open("r", encoding="utf-8") as f:
-        data = json.load(f)
-        return data.get("run_dir")
+# def _load_dir_config(path: str) -> List[str]:
+#     p = Path(path)
+#     with p.open("r", encoding="utf-8") as f:
+#         data = json.load(f)
+#         return data.get("run_dir")
         
 
 def main(texture_list: List[str], texture_config_path: str, suffix_config_path: str, directory_config_path) -> int:
@@ -53,8 +53,8 @@ def main(texture_list: List[str], texture_config_path: str, suffix_config_path: 
         texture_config_path,
         suffix_config_path
     )
-    run_directory = _load_dir_config(directory_config_path)
-    print(f"Run Directory: {run_directory}")
+    #run_directory = _load_dir_config(directory_config_path)
+    #print(f"Run Directory: {run_directory}")
     suffix_grid = validator.build_suffix_grid(suffix_settings)
     all_suffixes = [suf for row in suffix_grid for suf in row]
     for tex_path in texture_list:
@@ -68,13 +68,14 @@ def main(texture_list: List[str], texture_config_path: str, suffix_config_path: 
             print(f"Suffix Error: {suffix_result.error}")
             continue  # サフィックスエラーならインポートしない
 
-        is_valid_dir = validator.validate_directory(tex_path, run_directory)
-        if is_valid_dir:
-            print("Valid Directory")
-        else:
-            print("Invalid Directory")
-            print(f"---import end  {tex_path} ---")
-            continue
+        # c++側で判定するのでコメントアウト
+        #is_valid_dir = validator.validate_directory(tex_path, run_directory)
+        #if is_valid_dir:
+        #     print("Valid Directory")
+        # else:
+        #     print("Invalid Directory")
+        #     print(f"---import end  {tex_path} ---")
+        #     continue
         address_mode = get_address_settings_from_suffix(suffixes, suffix_settings)
         print(address_mode)
         texture_settings = build_texture_config_params(suffixes, tex_settings_dict, suffix_settings)
