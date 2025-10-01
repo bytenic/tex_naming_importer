@@ -40,10 +40,10 @@ def build_texture_config_params(suffixes: List[str],
     return overwrite_address_uv(base_settings, address_u, address_v)
 
 
-def main(texture_list: List[str]):
+def main(texture_list: List[str], texture_config_path: str, suffix_config_path: str) -> int:
     tex_settings_dict, suffix_settings = settings_importer.load_settings(
-        "E:/dev_e/tex_naming_importer/TexImporterProject/Saved/ImportSettings.json",
-        "E:/dev_e/tex_naming_importer/TexImporterProject/Saved/SuffixSettings.json"
+        texture_config_path,
+        suffix_config_path
     )
     valid_directory = ["/Game/VFX/", "/Game/Debug"]
     suffix_grid = validator.build_suffix_grid(suffix_settings)
@@ -77,5 +77,10 @@ def main(texture_list: List[str]):
 
 
 if __name__ == "__main__":
-    texture_path = sys.argv[1]
-    sys.exit(main([texture_path]))
+    if len(sys.argv) < 4:
+        print("Usage: <script> <texture_config_path> <suffix_config_path> <texture_path>")
+        sys.exit(1)
+    texture_config = sys.argv[1]
+    suffix_config = sys.argv[2]
+    texture_path = sys.argv[3]
+    sys.exit(main([texture_path], texture_config, suffix_config))

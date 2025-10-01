@@ -1,0 +1,62 @@
+{
+  "col": {
+    "address_u": "WRAP",
+    "address_v": "WRAP",
+    "max_in_game": 1024,
+    "enforce_pow2": true,
+    "compression": "BC7",
+    "srgb": "ON",
+    "save": true,
+    "silent": false
+  },
+  "msk": {
+    "address_u": "WRAP",
+    "address_v": "WRAP",
+    "max_in_game": 1024,
+    "enforce_pow2": true,
+    "compression": "MASKS",
+    "srgb": "OFF",
+    "save": true,
+    "silent": false
+  },
+  "nml": {
+    "address_u": "WRAP",
+    "address_v": "WRAP",
+    "max_in_game": 1024,
+    "enforce_pow2": true,
+    "compression": "NORMAL_MAP",
+    "srgb": "OFF",
+    "save": true,
+    "silent": false
+  },
+  "mat": {
+    "address_u": "CLAMP",
+    "address_v": "CLAMP",
+    "max_in_game": 1024,
+    "enforce_pow2": true,
+    "compression": "DEFAULT",
+    "srgb": "ON",
+    "save": true,
+    "silent": false
+  },
+  "cub": {
+    "address_u": "CLAMP",
+    "address_v": "CLAMP",
+    "max_in_game": 1024,
+    "enforce_pow2": true,
+    "compression": "HDR",
+    "srgb": "OFF",
+    "save": true,
+    "silent": false
+  },
+  "flw": {
+    "address_u": "WRAP",
+    "address_v": "WRAP",
+    "max_in_game": 1024,
+    "enforce_pow2": true,
+    "compression": "MASKS",
+    "srgb": "OFF",
+    "save": true,
+    "silent": false
+  }
+}
