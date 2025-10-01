@@ -116,6 +116,7 @@ void FTexNamingImporterModule::RunPythonForTexture(class UTexture* Texture)
 
 	const FString SuffixConfigPath(FPaths::Combine(FPaths::ProjectDir(), TEXT("Config"), TEXT("TexNamingImporter"), TEXT("SuffixSettings.json")));
 	const FString TextureConfigPath(FPaths::Combine(FPaths::ProjectDir(), TEXT("Config"), TEXT("TexNamingImporter"), TEXT("TextureSettings.json")));
+	const FString DirectoryConfigPath(FPaths::Combine(FPaths::ProjectDir(), TEXT("Config"), TEXT("TexNamingImporter"), TEXT("DirectorySettings.json")));
 	// Compose a Python one-liner to set cwd/sys.path and call your module function
 	const FString ObjectPath = Texture->GetPathName();
 	if (IPythonScriptPlugin::Get() != nullptr)
@@ -124,6 +125,7 @@ void FTexNamingImporterModule::RunPythonForTexture(class UTexture* Texture)
 	{
 				FString::Format(TEXT("{0}"), {FStringFormatArg(TextureConfigPath)}),
 				FString::Format(TEXT("{0}"), {FStringFormatArg(SuffixConfigPath)}),
+				FString::Format(TEXT("{0}"), {FStringFormatArg(DirectoryConfigPath)}),
 				FString::Format(TEXT("{0}"), {FStringFormatArg(ObjectPath)}),
 			});
 		if (!bOk)

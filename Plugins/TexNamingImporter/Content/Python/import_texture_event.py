@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 from typing import List, Dict
@@ -40,12 +41,20 @@ def build_texture_config_params(suffixes: List[str],
     return overwrite_address_uv(base_settings, address_u, address_v)
 
 
-def main(texture_list: List[str], texture_config_path: str, suffix_config_path: str) -> int:
+def _load_dir_config(path: str) -> List[str]:
+    p = Path(path)
+    with p.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+        return data.get("run_dir")
+        
+
+def main(texture_list: List[str], texture_config_path: str, suffix_config_path: str, directory_config_path) -> int:
     tex_settings_dict, suffix_settings = settings_importer.load_settings(
         texture_config_path,
         suffix_config_path
     )
-    valid_directory = ["/Game/VFX/", "/Game/Debug"]
+    run_directory = _load_dir_config(directory_config_path)
+    print(f"Run Directory: {run_directory}")
     suffix_grid = validator.build_suffix_grid(suffix_settings)
     all_suffixes = [suf for row in suffix_grid for suf in row]
     for tex_path in texture_list:
@@ -59,7 +68,7 @@ def main(texture_list: List[str], texture_config_path: str, suffix_config_path: 
             print(f"Suffix Error: {suffix_result.error}")
             continue  # サフィックスエラーならインポートしない
 
-        is_valid_dir = validator.validate_directory(tex_path, valid_directory)
+        is_valid_dir = validator.validate_directory(tex_path, run_directory)
         if is_valid_dir:
             print("Valid Directory")
         else:
@@ -77,10 +86,11 @@ def main(texture_list: List[str], texture_config_path: str, suffix_config_path: 
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 4:
-        print("Usage: <script> <texture_config_path> <suffix_config_path> <texture_path>")
+    if len(sys.argv) < 5:
+        print("Usage: <script> <texture_config_path> <suffix_config_path> <dir_config_path> <texture_path>")
         sys.exit(1)
     texture_config = sys.argv[1]
     suffix_config = sys.argv[2]
-    texture_path = sys.argv[3]
-    sys.exit(main([texture_path], texture_config, suffix_config))
+    dir_config = sys.argv[3]
+    texture_path = sys.argv[4]
+    sys.exit(main([texture_path], texture_config, suffix_config, dir_config))
