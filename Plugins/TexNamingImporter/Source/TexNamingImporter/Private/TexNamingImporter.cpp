@@ -33,11 +33,11 @@ static const FName TexNamingImporterTabName("TexNamingImporter");
 
 void FTexNamingImporterModule::StartupModule()
 {
-	// {ProjectDir}/Config/TexNamingImporter/DirectorySettings.json
+	// {ProjectDir}/Config/TexNamingImporter/DirectoryConfig.json
 	SettingsFilePath = FPaths::Combine(
 		FPaths::ProjectConfigDir(),
 		TEXT("TexNamingImporter"),
-		TEXT("DirectorySettings.json"));
+		TEXT("DirectoryConfig.json"));
 
 	LoadDirectorySettings();
 	
@@ -119,7 +119,7 @@ void FTexNamingImporterModule::LoadDirectorySettings()
 
 	if (!FPaths::FileExists(SettingsFilePath))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DirectorySettings.json not found: %s"), *SettingsFilePath);
+		UE_LOG(LogTemp, Warning, TEXT("DirectoryConfig.json not found: %s"), *SettingsFilePath);
 		return;
 	}
 
@@ -134,14 +134,14 @@ void FTexNamingImporterModule::LoadDirectorySettings()
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonText);
 	if (!FJsonSerializer::Deserialize(Reader, RootObj) || !RootObj.IsValid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to parse DirectorySettings.json: %s"), *SettingsFilePath);
+		UE_LOG(LogTemp, Error, TEXT("Failed to parse DirectoryConfig.json: %s"), *SettingsFilePath);
 		return;
 	}
 
 	const TArray<TSharedPtr<FJsonValue>>* RunDirArray = nullptr;
 	if (!RootObj->TryGetArrayField(TEXT("run_dir"), RunDirArray))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Field 'run_dir' not found in DirectorySettings.json: %s"), *SettingsFilePath);
+		UE_LOG(LogTemp, Warning, TEXT("Field 'run_dir' not found in DirectoryConfig.json: %s"), *SettingsFilePath);
 		return;
 	}
 
@@ -209,9 +209,9 @@ void FTexNamingImporterModule::RunPythonForTexture(class UTexture* Texture)
 	}
 #endif
 
-	const FString SuffixConfigPath(FPaths::Combine(FPaths::ProjectDir(), TEXT("Config"), TEXT("TexNamingImporter"), TEXT("SuffixSettings.json")));
-	const FString TextureConfigPath(FPaths::Combine(FPaths::ProjectDir(), TEXT("Config"), TEXT("TexNamingImporter"), TEXT("TextureSettings.json")));
-	const FString DirectoryConfigPath(FPaths::Combine(FPaths::ProjectDir(), TEXT("Config"), TEXT("TexNamingImporter"), TEXT("DirectorySettings.json")));
+	const FString SuffixConfigPath(FPaths::Combine(FPaths::ProjectDir(), TEXT("Config"), TEXT("TexNamingImporter"), TEXT("SuffixConfig.json")));
+	const FString TextureConfigPath(FPaths::Combine(FPaths::ProjectDir(), TEXT("Config"), TEXT("TexNamingImporter"), TEXT("TextureConfig.json")));
+	const FString DirectoryConfigPath(FPaths::Combine(FPaths::ProjectDir(), TEXT("Config"), TEXT("TexNamingImporter"), TEXT("DirectoryConfig.json")));
 	// Compose a Python one-liner to set cwd/sys.path and call your module function
 	const FString ObjectPath = Texture->GetPathName();
 	if (IPythonScriptPlugin::Get() != nullptr)
