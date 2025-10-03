@@ -86,7 +86,7 @@
 | `address_w` *(任意)* | string  | `WRAP` / `CLAMP` / `MIRROR`                          | **3D テクスチャ**用W軸のデフォルトアドレスモード | `address_suffix_3d` がある場合に使用          |
 | `max_in_game`      | number  | 0（無制限） / 256 / 512 / 1024 / 2048 / …               | **ゲーム内最大解像度**（px）     | 0 は無制限。POW2 丸めと併用推奨                   |
 | `enforce_pow2`     | boolean | `true` / `false`                                     | サイズを 2 の冪に正規化（丸め）         | 非 POW2 を避けたい場合に有効                     |
-| `compression`      | string  | `BC7` / `MASKS` / `NORMAL_MAP` / `HDR` / `DEFAULT` … | **圧縮設定のプリセット名**           | エンジン側の列挙にマップ                          |
+| `compression`      | string  | `BC7` / `MASKS` / `NORMAL_MAP` / `HDR` / `ALPHA` / `GRAYSCALE`/ `EDITOR_ICON`/ `DISTANCE_FIELD_FONT`/  `DEFAULT` … | **圧縮設定名**           | エンジン側の列挙にマップ                          |
 | `srgb`             | string  | `ON` / `OFF` / `AUTO`                                | sRGB フラグの扱い               | `AUTO` は種類や圧縮で決定する実装に                 |
 | `save`             | boolean | `true` / `false`                                     | 適用後にアセットを**自動保存**         | バッチ適用時は `true` 推奨                     |
 | `silent`           | boolean | `true` / `false`                                     | ログ出力の抑制                   | CI 等でノイズ低減に                           |

@@ -14,7 +14,7 @@
     "address_v": "WRAP",
     "max_in_game": 1024,
     "enforce_pow2": true,
-    "compression": "MASKS",
+    "compression": "ALPHA",
     "srgb": "OFF",
     "save": true,
     "silent": false
