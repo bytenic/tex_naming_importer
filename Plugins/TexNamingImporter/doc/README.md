@@ -46,11 +46,12 @@
 
 2. **3 つの JSON を配置**
 1で作成した設定ファイルを配置します。  
-これらのファイルのテンプレートはこのプラグインのトップフォルダにzipファイルで配置しています
+これらのファイルのテンプレートはこのプラグインのルートフォルダにzipファイルで配置しています
    ```
-   TextureConfig.json
-   SuffixConfig.json
-   DirectoryConfig.json
+   {PluginDir}/Config.zip
+    - TextureConfig.json
+    - SuffixConfig.json
+    - DirectoryConfig.json
    ```
 
 1. **DirectorySettings.json を編集（必須）**  
