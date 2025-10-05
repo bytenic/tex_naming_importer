@@ -13,8 +13,8 @@
     - [SuffixConfig.json — サフィックス定義](#suffixconfigjson--サフィックス定義)
       - [パラメータ解説（表）](#パラメータ解説表-1)
     - [DirectoryConfig.json — 実行対象パス](#directoryconfigjson--実行対象パス)
-  - [動作の仕組み（内部概要）](#動作の仕組み内部概要)
   - [トラブルシューティング](#トラブルシューティング)
+  - [(エンジニア向け)動作の仕組み](#エンジニア向け動作の仕組み)
 
 ---
 
@@ -190,9 +190,26 @@
   "run_dir": ["/Game/VFX", "/Game/Debug"]
 }
 ```
+
 ---
 
-## 動作の仕組み（内部概要）
+## トラブルシューティング
+
+* **何も起きない／適用されない**
+
+  * インポート先が **`run_dir` 配下**か
+  * 3 つの JSON が **`{ProjectDir}/Config/TexNamingImporter/`** にあるか
+  * Editor ログに JSON パースエラーや Python 実行エラーがないか
+
+* **サフィックス解釈エラー**
+
+  * ログの該当ファイル名とサフィックスを確認
+  * `SuffixSettings.json` のキー（`texture_type`, `address_suffix_2d/3d`）に**綴り漏れがないか**
+
+
+---
+
+## (エンジニア向け)動作の仕組み
 
 1. **StartupModule**
 
@@ -211,19 +228,3 @@
    * 引数: `TextureSettings.json` / `SuffixSettings.json` / `DirectorySettings.json` / `ObjectPath`
    * `TextureSettings` と `SuffixSettings` を合成して適用パラメータを生成
    * Unreal Python API で `UTexture` に反映し、必要に応じてアセット保存
-
----
-
-## トラブルシューティング
-
-* **何も起きない／適用されない**
-
-  * インポート先が **`run_dir` 配下**か
-  * 3 つの JSON が **`{ProjectDir}/Config/TexNamingImporter/`** にあるか
-  * Editor ログに JSON パースエラーや Python 実行エラーがないか
-
-* **サフィックス解釈エラー**
-
-  * ログの該当ファイル名とサフィックスを確認
-  * `SuffixSettings.json` のキー（`texture_type`, `address_suffix_2d/3d`）に**綴り漏れがないか**
-
