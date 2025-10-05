@@ -5,7 +5,9 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "BC7",
-    "srgb": "ON"
+    "srgb": "ON",
+    "mip_gen": "FROM_TEXTURE_GROUP",
+    "texture_group": "EFFECTS"   
   },
   "msk": {
     "address_u": "WRAP",
@@ -13,7 +15,9 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "ALPHA",
-    "srgb": "OFF"
+    "srgb": "OFF",
+    "mip_gen": "NO_MIPMAPS",
+    "texture_group": "EFFECTS"   
   },
   "nml": {
     "address_u": "WRAP",
@@ -21,7 +25,9 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "NORMAL_MAP",
-    "srgb": "OFF"
+    "srgb": "OFF",
+    "mip_gen": "FROM_TEXTURE_GROUP",
+    "texture_group": "EFFECTS"   
   },
   "mat": {
     "address_u": "CLAMP",
@@ -29,7 +35,9 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "DEFAULT",
-    "srgb": "ON"
+    "srgb": "ON",
+    "mip_gen": "FROM_TEXTURE_GROUP",
+    "texture_group": "EFFECTS"   
   },
   "cub": {
     "address_u": "CLAMP",
@@ -37,7 +45,9 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "HDR",
-    "srgb": "OFF"
+    "srgb": "OFF",
+    "mip_gen": "FROM_TEXTURE_GROUP",
+    "texture_group": "EFFECTS"   
   },
   "flw": {
     "address_u": "WRAP",
@@ -45,6 +55,8 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "MASKS",
-    "srgb": "OFF"
+    "srgb": "OFF",
+    "mip_gen": "FROM_TEXTURE_GROUP",
+    "texture_group": "EFFECTS"   
   }
 }

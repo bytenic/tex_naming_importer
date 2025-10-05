@@ -8,11 +8,11 @@
   - [インストール](#インストール)
   - [セットアップ手順](#セットアップ手順)
   - [設定ファイル（設計とひな型）](#設定ファイル設計とひな型)
-    - [TextureSettings.json — 種類ごとの既定値](#texturesettingsjson--種類ごとの既定値)
+    - [TextureConfig.json — 種類ごとの既定値](#textureconfigjson--種類ごとの既定値)
       - [パラメータ解説（表）](#パラメータ解説表)
-    - [SuffixSettings.json — サフィックス定義](#suffixsettingsjson--サフィックス定義)
+    - [SuffixConfig.json — サフィックス定義](#suffixconfigjson--サフィックス定義)
       - [パラメータ解説（表）](#パラメータ解説表-1)
-    - [DirectorySettings.json — 実行対象パス](#directorysettingsjson--実行対象パス)
+    - [DirectoryConfig.json — 実行対象パス](#directoryconfigjson--実行対象パス)
   - [動作の仕組み（内部概要）](#動作の仕組み内部概要)
   - [トラブルシューティング](#トラブルシューティング)
 
@@ -70,7 +70,7 @@
 > 3 つの JSON は **UTF-8** で保存してください。
 > 役割は「**種類ごとの既定値**」「**サフィックス定義**」「**実行対象パス**」に分離します。
 
-### TextureSettings.json — 種類ごとの既定値
+### TextureConfig.json — 種類ごとの既定値
 
 **目的**: テクスチャ**種類**（例: `col`, `msk`, `nml`, `mat`, `cub`, `flw` …）ごとに、
 **アドレスモード／圧縮／sRGB／最大解像度**を定義します。
@@ -81,13 +81,15 @@
 
 | キー                 | 型       | 設定できる値                                              | 説明                        | 備考                                    |
 | ------------------ | ------- | ---------------------------------------------------- | ------------------------- | ------------------------------------- |
-| `address_u`        | string  | `WRAP` / `CLAMP` / `MIRROR`                          | U 軸のデフォルトテクスチャアドレスモード          | `SuffixSettings` のアドレスサフィックスで**上書き可** |
+| `address_u`        | string  | `WRAP` / `CLAMP` / `MIRROR`                          | U 軸のデフォルトテクスチャアドレスモード          | `SuffixSettings` のアドレスサフィックスで**上書きができます。詳細はSuffixConfig.jsonを参照してください** |
 | `address_v`        | string  | `WRAP` / `CLAMP` / `MIRROR`                          | V 軸のデフォルトアドレスモード               | 同上                                    |
 | `address_w` *(任意)* | string  | `WRAP` / `CLAMP` / `MIRROR`                          | **3D テクスチャ**用W軸のデフォルトアドレスモード | `address_suffix_3d` がある場合に使用          |
 | `max_in_game`      | number  | 0（無制限） / 256 / 512 / 1024 / 2048 / …               | **ゲーム内最大解像度**（px）     | 0 は無制限。POW2 丸めと併用推奨                   |
 | `enforce_pow2`     | boolean | `true` / `false`                                     | サイズを 2 の冪に正規化（丸め）         | 非 POW2 を避けたい場合に有効                     |
-| `compression`      | string  | `BC7` / `MASKS` / `NORMAL_MAP` / `HDR` / `ALPHA` / `GRAYSCALE`/ `EDITOR_ICON`/ `DISTANCE_FIELD_FONT`/  `DEFAULT` … | **圧縮設定名**           | エンジン側の列挙にマップ                          |
-| `srgb`             | string  | `ON` / `OFF` / `AUTO`                                | sRGB フラグの扱い               | `AUTO` は種類や圧縮で決定する実装に                 |
+| `compression`      | string  | `BC7` / `MASKS` / `NORMAL_MAP` / `HDR` / `ALPHA` / `GRAYSCALE`/ `EDITOR_ICON`/ `DISTANCE_FIELD_FONT`/  `DEFAULT` … | **圧縮設定名**           | エンジン側の列挙に準拠します                          |
+| `srgb`             | string  | `ON` / `OFF` / `AUTO`                                | sRGB フラグの扱い               | `AUTO` は種類や圧縮でそれらしい値を設定しますができる限り使用しないことを推奨します。                 |
+| `mip_gen`       | string | `FROM_TEXTURE_GROUP`(既定) / `NO_MIPMAPS` / `SIMPLE_AVERAGE` / `SHARPEN0`〜`SHARPEN8`                                                                                                                             | **MipGenSettings** を指定します。`FROM_TEXTURE_GROUP` は `texture_group`（LODGroup）に従います。 | 不正値は**エラー**として処理されます。   |
+| `texture_group` | string | `WORLD`(既定) / `WORLD_NORMAL_MAP` / `WORLD_SPECULAR` / `CHARACTER` / `CHARACTER_NORMAL_MAP` / `CHARACTER_SPECULAR` / `UI` / `LIGHTMAP` / `SHADOWMAP` / `SKYBOX` / `VEHICLE` / `CINEMATIC` / `EFFECTS` / `MEDIA` | **LODGroup**（TextureGroup）を指定します。                   | 不正値は**エラー**として処理されます。エンジンのビルドにより利用可能なグループが異なる場合があります。 |
 
 **設定例**
 
@@ -99,7 +101,9 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "BC7",
-    "srgb": "ON"
+    "srgb": "ON",
+    "mip_gen": "FROM_TEXTURE_GROUP",
+    "texture_group": "EFFECTS"
   },
   "msk": {
     "address_u": "CLAMP",
@@ -107,7 +111,9 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "MASKS",
-    "srgb": "OFF"
+    "srgb": "OFF",
+    "mip_gen": "NO_MIPMAPS",
+    "texture_group": "EFFECTS"
   },
   "nml": {
     "address_u": "WRAP",
@@ -115,14 +121,16 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "NORMAL_MAP",
-    "srgb": "OFF"
+    "srgb": "OFF",
+    "mip_gen": "FROM_TEXTURE_GROUP",
+    "texture_group": "WORLD"
   }
 }
 ```
 
 ---
 
-### SuffixSettings.json — サフィックス定義
+### SuffixConfig.json — サフィックス定義
 
 **テクスチャ種類**（`texture_type`）、**アドレスモード**（2D: `address_suffix_2d` / 3D: `address_suffix_3d`）をテクスチャのサフィックスからします。**優先順位**は `suffix_index` で制御します。
 
@@ -134,7 +142,6 @@
 | `address_suffix_2d`        | object(map) | `"cc": ["CLAMP","CLAMP"]` / `"ww": ["WRAP","WRAP"]`        |  | **2D 用のアドレスサフィックスです。ここに設定した値でテクスチャのアドレスモードをインポート時に上書きします。** | 例：`"cw": ["CLAMP","WRAP"]` |
 | `address_suffix_3d` *(任意)* | object(map) | `"cww": ["CLAMP","WRAP","WRAP"]`                           |  | **3D 用のアドレスサフィックスです。**。値=[U,V,W]       | 3D テクスチャを扱う場合に追加(**現在は無効にしています**)           |
 | `suffix_index`             | string[]    | `["texture_type","address_suffix_2d"]` |    | **サフィックスの配置順**                           | サフィックスの順序を定義します            |
-
 
 **設定例**
 
@@ -167,7 +174,7 @@
 
 ---
 
-### DirectorySettings.json — 実行対象パス
+### DirectoryConfig.json — 実行対象パス
 
 **処理対象とする `/Game/...` のルート**を列挙します。
 ここに含まれないインポートは**早期リターン（スキップ）**します。
