@@ -88,8 +88,6 @@
 | `enforce_pow2`     | boolean | `true` / `false`                                     | サイズを 2 の冪に正規化（丸め）         | 非 POW2 を避けたい場合に有効                     |
 | `compression`      | string  | `BC7` / `MASKS` / `NORMAL_MAP` / `HDR` / `ALPHA` / `GRAYSCALE`/ `EDITOR_ICON`/ `DISTANCE_FIELD_FONT`/  `DEFAULT` … | **圧縮設定名**           | エンジン側の列挙にマップ                          |
 | `srgb`             | string  | `ON` / `OFF` / `AUTO`                                | sRGB フラグの扱い               | `AUTO` は種類や圧縮で決定する実装に                 |
-| `save`             | boolean | `true` / `false`                                     | 適用後にアセットを**自動保存**         | バッチ適用時は `true` 推奨                     |
-| `silent`           | boolean | `true` / `false`                                     | ログ出力の抑制                   | CI 等でノイズ低減に                           |
 
 **設定例**
 
@@ -101,9 +99,7 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "BC7",
-    "srgb": "ON",
-    "save": true,
-    "silent": false
+    "srgb": "ON"
   },
   "msk": {
     "address_u": "CLAMP",
@@ -111,9 +107,7 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "MASKS",
-    "srgb": "OFF",
-    "save": true,
-    "silent": false
+    "srgb": "OFF"
   },
   "nml": {
     "address_u": "WRAP",
@@ -121,9 +115,7 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "NORMAL_MAP",
-    "srgb": "OFF",
-    "save": true,
-    "silent": false
+    "srgb": "OFF"
   }
 }
 ```

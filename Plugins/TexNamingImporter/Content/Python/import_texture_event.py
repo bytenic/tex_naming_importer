@@ -58,7 +58,7 @@ def main(texture_list: List[str], texture_config_path: str, suffix_config_path: 
     suffix_grid = validator.build_suffix_grid(suffix_settings)
     all_suffixes = [suf for row in suffix_grid for suf in row]
     for tex_path in texture_list:
-        print(f"---import start  {tex_path} ---")
+        print(f"---import begin  {tex_path} ---")
         suffixes = collect_suffixes_from_path(tex_path, all_suffixes)
         suffix_result = validator.validate_suffixes(suffixes, suffix_grid)
         print(suffix_result)  
@@ -76,10 +76,8 @@ def main(texture_list: List[str], texture_config_path: str, suffix_config_path: 
         #     print("Invalid Directory")
         #     print(f"---import end  {tex_path} ---")
         #     continue
-        address_mode = get_address_settings_from_suffix(suffixes, suffix_settings)
-        print(address_mode)
         texture_settings = build_texture_config_params(suffixes, tex_settings_dict, suffix_settings)
-        print(texture_settings)
+        print(f"import property: {texture_settings}")
         importer = TextureConfigurator(params=texture_settings)
         importer.apply(tex_path)
         print(f"---import end  {tex_path} ---")

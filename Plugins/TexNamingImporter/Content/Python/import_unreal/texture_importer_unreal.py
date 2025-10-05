@@ -2,8 +2,7 @@ import math
 import sys
 from pathlib import Path
 import unreal
-from enum import Enum, IntEnum
-from typing import Optional, Union, Dict, List
+from typing import Union, Dict, List
 
 _THIS_DIR = Path(__file__).resolve().parent
 if str(_THIS_DIR) not in sys.path:
@@ -112,116 +111,6 @@ class TextureConfigurator:
         if cs == getattr(E, "TC_BC7", object()): return True
         return True
 
-    # ---------- 個別適用（細粒度） ----------
-    def set_address(self, texture: unreal.Texture, u: AddressMode, v: AddressMode, *, z: Optional[AddressMode] = None, commit: bool = True):
-        if not isinstance(texture, unreal.Texture):
-            raise TypeError("texture must be unreal.Texture")
-        ux = self._ua(u)
-        vy = self._ua(v)
-        zz = self._ua(z) if z is not None else None
-
-        trans = unreal.ScopedEditorTransaction("Set Texture Address (U/V[/Z])") if commit else None
-        try:
-            texture.modify()
-            texture.address_x = ux
-            texture.address_y = vy
-            if zz is not None and hasattr(texture, "address_z"):
-                texture.address_z = zz
-
-            if commit:
-                texture.post_edit_change()
-                texture.mark_package_dirty()
-                if self.params.save:
-                    unreal.EditorAssetLibrary.save_loaded_asset(texture)
-                if not self.params.silent:
-                    msg = f"[SetTextureAddress] {texture.get_path_name()} X={ux} Y={vy}" + (f" Z={zz}" if zz else "")
-                    unreal.log(msg)
-        finally:
-            if trans is not None:
-                del trans
-
-    def set_max_in_game(self, texture: unreal.Texture, max_size: NumericSize, *, enforce_pow2: bool = False, commit: bool = True):
-        if not isinstance(texture, unreal.Texture):
-            raise TypeError("texture must be unreal.Texture")
-        size = self._size_to_int(max_size)
-        if enforce_pow2 and size > 0:
-            size = 1 << int(math.log2(size))  # 下方丸め
-        if size > 0:
-            size = max(16, min(size, 16384))
-
-        trans = unreal.ScopedEditorTransaction("Set Texture Max In-Game Size") if commit else None
-        try:
-            texture.modify()
-            if hasattr(texture, "max_texture_size"):
-                texture.max_texture_size = size
-            else:
-                texture.set_editor_property("MaxTextureSize", size)
-
-            if commit:
-                texture.post_edit_change()
-                texture.mark_package_dirty()
-                if self.params.save:
-                    unreal.EditorAssetLibrary.save_loaded_asset(texture)
-                if not self.params.silent:
-                    human = "Auto (no cap)" if size == 0 else f"{size}px"
-                    unreal.log(f"[SetTextureMaxInGame] {texture.get_path_name()} MaxTextureSize={human}")
-        finally:
-            if trans is not None:
-                del trans
-
-    def set_compression(self, texture: unreal.Texture, compression: CompressionKind, *, commit: bool = True):
-        if not isinstance(texture, unreal.Texture):
-            raise TypeError("texture must be unreal.Texture")
-        cs = self._uc(compression)
-
-        trans = unreal.ScopedEditorTransaction("Set Texture Compression") if commit else None
-        try:
-            texture.modify()
-            texture.compression_settings = cs
-
-            if commit:
-                texture.post_edit_change()
-                texture.mark_package_dirty()
-                if self.params.save:
-                    unreal.EditorAssetLibrary.save_loaded_asset(texture)
-                if not self.params.silent:
-                    unreal.log(f"[SetTextureCompression] {texture.get_path_name()} Compression={cs}")
-        finally:
-            if trans is not None:
-                del trans
-
-    def set_srgb(self, texture: unreal.Texture, mode: SRGBMode, *, commit: bool = True):
-        if not isinstance(texture, unreal.Texture):
-            raise TypeError("texture must be unreal.Texture")
-
-        if mode is SRGBMode.AUTO:
-            cs = getattr(texture, "compression_settings", None)
-            if not isinstance(cs, unreal.TextureCompressionSettings):
-                raise RuntimeError("failed to read texture.compression_settings for AUTO sRGB")
-            desired = self._auto_srgb_from_compression_unreal(cs)
-        else:
-            desired = (mode is SRGBMode.ON)
-
-        trans = unreal.ScopedEditorTransaction("Set Texture sRGB") if commit else None
-        try:
-            texture.modify()
-            if hasattr(texture, "srgb"):
-                texture.srgb = bool(desired)
-            else:
-                texture.set_editor_property("SRGB", bool(desired))
-
-            if commit:
-                texture.post_edit_change()
-                texture.mark_package_dirty()
-                if self.params.save:
-                    unreal.EditorAssetLibrary.save_loaded_asset(texture)
-                if not self.params.silent:
-                    unreal.log(f"[SetTextureSRGB] {texture.get_path_name()} sRGB={'ON' if desired else 'OFF'}")
-        finally:
-            if trans is not None:
-                del trans
-
-    # ---------- 一括適用（共通エラハン） ----------
     def apply(self, path_name: str) -> Dict[str, Union[bool, List[str]]]:
         """
         dataclassの内容を一括反映。
@@ -235,8 +124,7 @@ class TextureConfigurator:
 
         if not isinstance(texture, unreal.Texture):
             msg = "apply(): first argument must be unreal.Texture"
-            if not p.silent:
-                unreal.log_error(msg)
+            unreal.log_error(msg)
             report.update(ok=False, errors=[msg])
             return report
 
@@ -303,16 +191,12 @@ class TextureConfigurator:
                     report["errors"].append(f"srgb: {e}")
 
             # 一括反映
-            #texture.()
-            if p.save:
-                unreal.EditorAssetLibrary.save_loaded_asset(texture)
-
-            if not p.silent:
-                path = texture.get_path_name()
-                if report["ok"]:
-                    unreal.log(f"[TextureConfigurator] Applied to {path} ({', '.join(report['applied']) or 'no-op'})")
-                else:
-                    unreal.log_warning(f"[TextureConfigurator] Applied with errors on {path}: {report['errors']}")
+            unreal.EditorAssetLibrary.save_loaded_asset(texture)            
+            path = texture.get_path_name()
+            if report["ok"]:
+                unreal.log(f"[TextureConfigurator] Applied to {path} ({', '.join(report['applied']) or 'no-op'})")
+            else:
+                unreal.log_warning(f"[TextureConfigurator] Applied with errors on {path}: {report['errors']}")
 
             return report
         finally:

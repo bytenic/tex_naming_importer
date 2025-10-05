@@ -24,11 +24,7 @@ class TextureConfigParams:
     # 圧縮設定 & sRGB
     compression: Optional[CompressionKind] = None
     srgb: Optional[SRGBMode] = None
-
-    # 共通動作
-    save: bool = True
-    silent: bool = False
-
+    
 
 def overwrite_address_uv(params: TextureConfigParams, u: AddressMode, v: AddressMode) -> TextureConfigParams:
     """
@@ -111,8 +107,6 @@ def _params_to_dict(p: TextureConfigParams, *, minimal: bool = True) -> Dict[str
         "enforce_pow2": bool(p.enforce_pow2) if p.max_in_game is not None else None,
         "compression": _enum_name(p.compression),
         "srgb": _enum_name(p.srgb),
-        "save": bool(p.save),
-        "silent": bool(p.silent),
     }
     if minimal:
         return {k: v for k, v in out.items() if v is not None}
@@ -168,8 +162,6 @@ def _params_from_dict(d: Dict[str, Any]) -> TextureConfigParams:
         enforce_pow2=bool(d.get("enforce_pow2", False)),
         compression=_enum(CompressionKind, d.get("compression")),
         srgb=_enum(SRGBMode, d.get("srgb")),
-        save=bool(d.get("save", True)),
-        silent=bool(d.get("silent", False)),
     )
 
 # ---------- 保存 / 読込 ----------

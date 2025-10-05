@@ -5,9 +5,7 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "BC7",
-    "srgb": "ON",
-    "save": true,
-    "silent": false
+    "srgb": "ON"
   },
   "msk": {
     "address_u": "WRAP",
@@ -15,9 +13,7 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "ALPHA",
-    "srgb": "OFF",
-    "save": true,
-    "silent": false
+    "srgb": "OFF"
   },
   "nml": {
     "address_u": "WRAP",
@@ -25,9 +21,7 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "NORMAL_MAP",
-    "srgb": "OFF",
-    "save": true,
-    "silent": false
+    "srgb": "OFF"
   },
   "mat": {
     "address_u": "CLAMP",
@@ -35,9 +29,7 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "DEFAULT",
-    "srgb": "ON",
-    "save": true,
-    "silent": false
+    "srgb": "ON"
   },
   "cub": {
     "address_u": "CLAMP",
@@ -45,9 +37,7 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "HDR",
-    "srgb": "OFF",
-    "save": true,
-    "silent": false
+    "srgb": "OFF"
   },
   "flw": {
     "address_u": "WRAP",
@@ -55,8 +45,6 @@
     "max_in_game": 1024,
     "enforce_pow2": true,
     "compression": "MASKS",
-    "srgb": "OFF",
-    "save": true,
-    "silent": false
+    "srgb": "OFF"
   }
 }
