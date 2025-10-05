@@ -13,7 +13,9 @@ from type_define import (
     AddressMode,
     CompressionKind,
     SRGBMode,
-    SizePreset
+    SizePreset,
+    MipGenKind,
+    TextureGroupKind, 
 ) 
 
 def _get_texture_from_path(path: str) -> unreal.Texture:
@@ -89,6 +91,57 @@ class TextureConfigurator:
             if hasattr(E, name):
                 return getattr(E, name)
         raise RuntimeError(f"Unsupported CompressionKind on this engine build: {kind}")
+    
+    @staticmethod
+    def _um(kind: MipGenKind):
+        """MipGenKind -> unreal.TextureMipGenSettings"""
+        E = unreal.TextureMipGenSettings
+        # 候補名（UEバージョン差吸収）
+        table = {
+            MipGenKind.FROM_TEXTURE_GROUP: ("FROM_TEXTURE_GROUP", "TMGS_FROM_TEXTURE_GROUP"),
+            MipGenKind.NO_MIPMAPS:         ("NO_MIPMAPS", "TMGS_NO_MIPMAPS"),
+            MipGenKind.SIMPLE_AVERAGE:     ("SIMPLE_AVERAGE", "TMGS_SIMPLE_AVERAGE"),
+            MipGenKind.SHARPEN0:           ("SHARPEN0", "TMGS_SHARPEN0"),
+            MipGenKind.SHARPEN1:           ("SHARPEN1", "TMGS_SHARPEN1"),
+            MipGenKind.SHARPEN2:           ("SHARPEN2", "TMGS_SHARPEN2"),
+            MipGenKind.SHARPEN3:           ("SHARPEN3", "TMGS_SHARPEN3"),
+            MipGenKind.SHARPEN4:           ("SHARPEN4", "TMGS_SHARPEN4"),
+            MipGenKind.SHARPEN5:           ("SHARPEN5", "TMGS_SHARPEN5"),
+            MipGenKind.SHARPEN6:           ("SHARPEN6", "TMGS_SHARPEN6"),
+            MipGenKind.SHARPEN7:           ("SHARPEN7", "TMGS_SHARPEN7"),
+            MipGenKind.SHARPEN8:           ("SHARPEN8", "TMGS_SHARPEN8"),
+        }
+        names = table.get(kind, ())
+        for n in names:
+            if hasattr(E, n):
+                return getattr(E, n)
+        raise RuntimeError(f"Unsupported MipGenKind on this engine build: {kind}")
+
+    @staticmethod
+    def _utg(kind: TextureGroupKind):
+        """TextureGroupKind -> unreal.TextureGroup"""
+        E = unreal.TextureGroup
+        table = {
+            TextureGroupKind.WORLD:                 ("TEXTUREGROUP_WORLD", "WORLD"),
+            TextureGroupKind.WORLD_NORMAL_MAP:      ("TEXTUREGROUP_WORLD_NORMAL_MAP", "WORLD_NORMAL_MAP"),
+            TextureGroupKind.WORLD_SPECULAR:        ("TEXTUREGROUP_WORLD_SPECULAR", "WORLD_SPECULAR"),
+            TextureGroupKind.CHARACTER:             ("TEXTUREGROUP_CHARACTER", "CHARACTER"),
+            TextureGroupKind.CHARACTER_NORMAL_MAP:  ("TEXTUREGROUP_CHARACTER_NORMAL_MAP", "CHARACTER_NORMAL_MAP"),
+            TextureGroupKind.CHARACTER_SPECULAR:    ("TEXTUREGROUP_CHARACTER_SPECULAR", "CHARACTER_SPECULAR"),
+            TextureGroupKind.UI:                    ("TEXTUREGROUP_UI", "UI"),
+            TextureGroupKind.LIGHTMAP:              ("TEXTUREGROUP_LIGHTMAP", "LIGHTMAP"),
+            TextureGroupKind.SHADOWMAP:             ("TEXTUREGROUP_SHADOWMAP", "SHADOWMAP"),
+            TextureGroupKind.SKYBOX:                ("TEXTUREGROUP_SKYBOX", "SKYBOX"),
+            TextureGroupKind.VEHICLE:               ("TEXTUREGROUP_VEHICLE", "VEHICLE"),
+            TextureGroupKind.CINEMATIC:             ("TEXTUREGROUP_CINEMATIC", "CINEMATIC"),
+            TextureGroupKind.EFFECTS:               ("TEXTUREGROUP_EFFECTS", "EFFECTS"),
+            TextureGroupKind.MEDIA:                 ("TEXTUREGROUP_MEDIA", "MEDIA"),
+        }
+        names = table.get(kind, ())
+        for n in names:
+            if hasattr(E, n):
+                return getattr(E, n)
+        raise RuntimeError(f"Unsupported TextureGroupKind on this engine build: {kind}")
 
     @staticmethod
     def _size_to_int(v: NumericSize) -> int:
@@ -189,6 +242,25 @@ class TextureConfigurator:
                 except Exception as e:
                     report["ok"] = False
                     report["errors"].append(f"srgb: {e}")
+
+            # 5) TextureGroup（LODGroup
+            try:
+                tg = self._utg(p.texture_group)
+                # C++プロパティ名は LODGroup。Python では set_editor_property が確実。
+                texture.set_editor_property("LODGroup", tg)
+                report["applied"].append("texture_group")
+            except Exception as e:
+                report["ok"] = False
+                report["errors"].append(f"texture_group: {e}")
+
+            # === 6) MipGenSettings ===
+            try:
+                mg = self._um(p.mip_gen)
+                texture.set_editor_property("MipGenSettings", mg)
+                report["applied"].append("mip_gen")
+            except Exception as e:
+                report["ok"] = False
+                report["errors"].append(f"mip_gen: {e}")
 
             # 一括反映
             unreal.EditorAssetLibrary.save_loaded_asset(texture)            

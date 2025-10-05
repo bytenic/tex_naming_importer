@@ -3,7 +3,7 @@ from typing import Optional, Union, Tuple, Dict, List, Tuple,Any
 import json
 from pathlib import Path
 
-from type_define import AddressMode, SizePreset, CompressionKind, SRGBMode
+from type_define import AddressMode, SizePreset, CompressionKind, SRGBMode, MipGenKind, TextureGroupKind
 
 NumericSize = Union[int, SizePreset]
 
@@ -24,6 +24,9 @@ class TextureConfigParams:
     # 圧縮設定 & sRGB
     compression: Optional[CompressionKind] = None
     srgb: Optional[SRGBMode] = None
+
+    mip_gen: MipGenKind = MipGenKind.FROM_TEXTURE_GROUP      # 既定：FromTextureGroup
+    texture_group: TextureGroupKind = TextureGroupKind.WORLD  # 既定：World
     
 
 def overwrite_address_uv(params: TextureConfigParams, u: AddressMode, v: AddressMode) -> TextureConfigParams:
@@ -107,6 +110,8 @@ def _params_to_dict(p: TextureConfigParams, *, minimal: bool = True) -> Dict[str
         "enforce_pow2": bool(p.enforce_pow2) if p.max_in_game is not None else None,
         "compression": _enum_name(p.compression),
         "srgb": _enum_name(p.srgb),
+        "mip_gen": _enum_name(p.mip_gen),
+        "texture_group": _enum_name(p.texture_group),
     }
     if minimal:
         return {k: v for k, v in out.items() if v is not None}
@@ -162,6 +167,8 @@ def _params_from_dict(d: Dict[str, Any]) -> TextureConfigParams:
         enforce_pow2=bool(d.get("enforce_pow2", False)),
         compression=_enum(CompressionKind, d.get("compression")),
         srgb=_enum(SRGBMode, d.get("srgb")),
+        mip_gen=_enum(MipGenKind, d.get("mip_gen")) if d.get("mip_gen") is not None else MipGenKind.FROM_TEXTURE_GROUP,
+        texture_group=_enum(TextureGroupKind, d.get("texture_group")) if d.get("texture_group") is not None else TextureGroupKind.WORLD,
     )
 
 # ---------- 保存 / 読込 ----------
