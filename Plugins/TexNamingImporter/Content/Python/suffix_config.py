@@ -5,8 +5,6 @@ from dataclasses import dataclass
 import json
 from type_define import AddressMode
 
-
-
 AddressPair   = Tuple[AddressMode, AddressMode]
 AddressTriple = Tuple[AddressMode, AddressMode, AddressMode]
 

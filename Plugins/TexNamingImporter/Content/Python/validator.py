@@ -5,7 +5,6 @@ from typing import Dict, List, Optional, Iterable
 
 from suffix_config import TextureSuffixConfig
 
-
 @dataclass
 class SuffixValidationResult:
     ok: bool

@@ -13,9 +13,6 @@
 #include "IPythonScriptPlugin.h"
 #include "Subsystems/ImportSubsystem.h"
 #include "Misc/Paths.h"
-#include "Misc/FeedbackContext.h"
-#include "HAL/PlatformProcess.h"
-#include "UObject/SoftObjectPath.h"
 #include "Engine/Texture.h"
 #include "EditorFramework/AssetImportData.h"
 

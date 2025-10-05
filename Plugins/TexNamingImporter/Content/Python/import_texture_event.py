@@ -23,6 +23,7 @@ def get_address_settings_from_suffix(suffixes: List[str], suffix_settings: Textu
             return suffix_settings.get_uvw(suf)
     return (AddressMode.WRAP, AddressMode.WRAP)
 
+
 def get_texture_settings_from_suffixes(suffixes: List[str],
                                         texture_settings: Dict[str, TextureConfigParams],
                                         suffix_settings: TextureSuffixConfig):
@@ -40,13 +41,6 @@ def build_texture_config_params(suffixes: List[str],
     address_u, address_v = get_address_settings_from_suffix(suffixes, suffix_settings)
     return overwrite_address_uv(base_settings, address_u, address_v)
 
-
-# def _load_dir_config(path: str) -> List[str]:
-#     p = Path(path)
-#     with p.open("r", encoding="utf-8") as f:
-#         data = json.load(f)
-#         return data.get("run_dir")
-        
 
 def main(texture_list: List[str], texture_config_path: str, suffix_config_path: str, directory_config_path) -> int:
     tex_settings_dict, suffix_settings = settings_importer.load_settings(
