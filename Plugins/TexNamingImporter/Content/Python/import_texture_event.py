@@ -11,7 +11,9 @@ from texture_config import TextureConfigParams, overwrite_address_uv, load_param
 from suffix_config import TextureSuffixConfig, load_texture_suffix_config
 from type_define import AddressMode
 from path_utils.path_functions import *
-from import_unreal.texture_importer_unreal import TextureConfigurator
+
+from detail_unreal.texture_configurator_unreal import TextureConfigurator
+
 
 def get_address_settings_from_suffix(suffixes: List[str], suffix_settings: TextureSuffixConfig):
     for suf in suffixes:
