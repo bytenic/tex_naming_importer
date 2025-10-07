@@ -213,7 +213,7 @@ void FTexNamingImporterModule::RunPythonForTexture(class UTexture* Texture)
 	const FString ObjectPath = Texture->GetPathName();
 	if (IPythonScriptPlugin::Get() != nullptr)
 	{
-		const bool bOk = RunPythonFile(TEXT("import_texture_event.py"),
+		const bool bOk = RunPythonFile(TEXT("texture_configurator.py"),
 	{
 				FString::Format(TEXT("{0}"), {FStringFormatArg(TextureConfigPath)}),
 				FString::Format(TEXT("{0}"), {FStringFormatArg(SuffixConfigPath)}),
