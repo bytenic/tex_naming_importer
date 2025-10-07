@@ -1,4 +1,4 @@
-import sys
+import sys, argparse
 from pathlib import Path
 from typing import List, Dict
 
@@ -13,6 +13,38 @@ from type_define import AddressMode
 from path_utils.path_functions import *
 
 from detail_unreal.texture_configurator_unreal import TextureConfigurator
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="texture_configurator",
+        description=(
+            "テクスチャ設定最小CLI\n"
+            "以下の4つの位置引数を受け取り、execute_texture_config を呼び出します。\n"
+            "  1) TextureSettings の JSON パス\n"
+            "  2) SuffixSettings の JSON パス\n"
+            "  3) DirectorySettings の JSON パス\n"
+            "  4) テクスチャアセットパス（例: /Game/Textures/T_Sample.T_Sample）"
+        ),
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+
+    parser.add_argument(
+        "texture_config_path",
+        help="TextureSettings の JSON ファイルパス。例: {ProjectDir}/Config/TexNamingImporter/TextureSettings.json",
+    )
+    parser.add_argument(
+        "suffix_config_path",
+        help="SuffixSettings の JSON ファイルパス。例: {ProjectDir}/Config/TexNamingImporter/SuffixSettings.json",
+    )
+    parser.add_argument(
+        "directory_config_path",
+        help="DirectorySettings の JSON ファイルパス。例: {ProjectDir}/Config/TexNamingImporter/DirectorySettings.json",
+    )
+    parser.add_argument(
+        "texture_path",
+        help="対象テクスチャの Unreal アセットパス。例: /Game/Textures/T_Sample.T_Sample",
+    )
+    return parser
 
 
 def get_address_settings_from_suffix(suffixes: List[str], suffix_settings: TextureSuffixConfig):
@@ -42,7 +74,7 @@ def build_texture_config_params(suffixes: List[str],
     return overwrite_address_uv(base_settings, address_u, address_v)
 
 
-def main(texture_list: List[str], texture_config_path: str, suffix_config_path: str, directory_config_path) -> int:
+def execute_texture_config(texture_list: List[str], texture_config_path: str, suffix_config_path: str, directory_config_path) -> int:
     tex_settings_dict = load_params_map_json(texture_config_path)
     suffix_settings = load_texture_suffix_config(suffix_config_path)
     
@@ -82,11 +114,21 @@ def main(texture_list: List[str], texture_config_path: str, suffix_config_path: 
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 5:
-        print("Usage: <script> <texture_config_path> <suffix_config_path> <dir_config_path> <texture_path>")
+    parser = build_parser()
+    args = parser.parse_args()
+    textures = [args.texture_path]
+    # execute_texture_config() 呼び出し（戻り値が int ならそれを終了コードに、そうでなければ 1）
+    try:
+        ret = execute_texture_config(
+            texture_list=textures,
+            texture_config_path=args.texture_config_path,
+            suffix_config_path=args.suffix_config_path,
+            directory_config_path=args.directory_config_path
+        )
+        sys.exit(int(ret) if isinstance(ret, int) else 1)
+    except SystemExit:
+        raise
+    except Exception as e:
+        # ここでは余計な処理はせず、簡単なスタックのみで終了
+        print(f"[ERROR] {e}", file=sys.stderr)
         sys.exit(1)
-    texture_config = sys.argv[1]
-    suffix_config = sys.argv[2]
-    dir_config = sys.argv[3]
-    texture_path = sys.argv[4]
-    sys.exit(main([texture_path], texture_config, suffix_config, dir_config))
