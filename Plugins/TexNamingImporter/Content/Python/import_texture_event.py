@@ -1,4 +1,3 @@
-import json
 import sys
 from pathlib import Path
 from typing import List, Dict
@@ -7,10 +6,9 @@ _THIS_DIR = Path(__file__).resolve().parent
 if str(_THIS_DIR) not in sys.path:
     sys.path.insert(0, str(_THIS_DIR))
 
-import settings_importer
 import validator
-from texture_config import TextureConfigParams, overwrite_address_uv
-from suffix_config import TextureSuffixConfig
+from texture_config import TextureConfigParams, overwrite_address_uv, load_params_map_json
+from suffix_config import TextureSuffixConfig, load_texture_suffix_config
 from type_define import AddressMode
 from path_utils.path_functions import *
 from import_unreal.texture_importer_unreal import TextureConfigurator
@@ -43,14 +41,12 @@ def build_texture_config_params(suffixes: List[str],
 
 
 def main(texture_list: List[str], texture_config_path: str, suffix_config_path: str, directory_config_path) -> int:
-    tex_settings_dict, suffix_settings = settings_importer.load_settings(
-        texture_config_path,
-        suffix_config_path
-    )
-    #run_directory = _load_dir_config(directory_config_path)
-    #print(f"Run Directory: {run_directory}")
+    tex_settings_dict = load_params_map_json(texture_config_path)
+    suffix_settings = load_texture_suffix_config(suffix_config_path)
+    
     suffix_grid = validator.build_suffix_grid(suffix_settings)
     all_suffixes = [suf for row in suffix_grid for suf in row]
+    
     for tex_path in texture_list:
         print(f"---import begin  {tex_path} ---")
         suffixes = collect_suffixes_from_path(tex_path, all_suffixes)
@@ -73,7 +69,12 @@ def main(texture_list: List[str], texture_config_path: str, suffix_config_path: 
         texture_settings = build_texture_config_params(suffixes, tex_settings_dict, suffix_settings)
         print(f"import property: {texture_settings}")
         importer = TextureConfigurator(params=texture_settings)
-        importer.apply(tex_path)
+        import_result_dict = importer.apply(tex_path)
+        print(import_result_dict)
+        if import_result_dict.get("ok"):
+            print("Import Succeeded")
+        else:
+            print(f"Import Failed: {import_result_dict}")
         print(f"---import end  {tex_path} ---")
     return 0
 
