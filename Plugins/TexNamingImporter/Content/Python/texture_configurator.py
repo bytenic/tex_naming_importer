@@ -7,9 +7,10 @@ if str(_THIS_DIR) not in sys.path:
     sys.path.insert(0, str(_THIS_DIR))
 
 import validator
-from texture_config import TextureConfigParams, overwrite_address_uv, load_params_map_json
+from texture_config import overwrite_address_uv, load_params_map_json
 from suffix_config import TextureSuffixConfig, load_texture_suffix_config
 from type_define import AddressMode
+from config import Config, TextureConfigParams
 from path_utils.path_functions import *
 
 from detail_unreal.texture_configurator_unreal import TextureConfigurator
@@ -37,8 +38,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="SuffixSettings の JSON ファイルパス。例: {ProjectDir}/Config/TexNamingImporter/SuffixSettings.json",
     )
     parser.add_argument(
-        "directory_config_path",
-        help="DirectorySettings の JSON ファイルパス。例: {ProjectDir}/Config/TexNamingImporter/DirectorySettings.json",
+        "config_path",
+        help="Config の JSON ファイルパス。例: {ProjectDir}/Config/TexNamingImporter/Config.json",
     )
     parser.add_argument(
         "texture_path",
@@ -74,13 +75,15 @@ def build_texture_config_params(suffixes: List[str],
     return overwrite_address_uv(base_settings, address_u, address_v)
 
 
-def execute_texture_config(texture_list: List[str], texture_config_path: str, suffix_config_path: str, directory_config_path) -> int:
+def apply_texture_property_from_config(texture_list: List[str], texture_config_path: str, suffix_config_path: str, config_path) -> int:
     tex_settings_dict = load_params_map_json(texture_config_path)
     suffix_settings = load_texture_suffix_config(suffix_config_path)
     
     suffix_grid = validator.build_suffix_grid(suffix_settings)
     all_suffixes = [suf for row in suffix_grid for suf in row]
-    
+    config_data = Config()
+    config_data = config_data.load(config_path)
+    print(config_data)
     for tex_path in texture_list:
         print(f"---import begin  {tex_path} ---")
         suffixes = collect_suffixes_from_path(tex_path, all_suffixes)
@@ -119,11 +122,11 @@ if __name__ == "__main__":
     textures = [args.texture_path]
     # execute_texture_config() 呼び出し（戻り値が int ならそれを終了コードに、そうでなければ 1）
     try:
-        ret = execute_texture_config(
+        ret = apply_texture_property_from_config(
             texture_list=textures,
             texture_config_path=args.texture_config_path,
             suffix_config_path=args.suffix_config_path,
-            directory_config_path=args.directory_config_path
+            config_path=args.config_path
         )
         sys.exit(int(ret) if isinstance(ret, int) else 1)
     except SystemExit:

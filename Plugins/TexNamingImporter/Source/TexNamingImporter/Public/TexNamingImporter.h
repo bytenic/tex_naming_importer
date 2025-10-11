@@ -42,7 +42,7 @@ private:
 
 private:
 	/** 設定ファイルのフルパス */
-	FString SettingsFilePath;
+	FString ConfigFilePath;
 	/** 許可ディレクトリ（/Game/… のロングパッケージパス。末尾スラッシュ無しで保持） */
 	TArray<FString> RunDirs;
 	TSharedRef<class SDockTab> OnSpawnPluginTab(const class FSpawnTabArgs& SpawnTabArgs);
