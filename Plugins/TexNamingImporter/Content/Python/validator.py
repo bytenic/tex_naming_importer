@@ -3,8 +3,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Iterable
 
-from suffix_config import TextureSuffixConfig
-
 @dataclass
 class SuffixValidationResult:
     ok: bool
@@ -17,16 +15,6 @@ class SuffixValidationResult:
     # 解析に使った元配列
     suffix_list: Optional[List[str]] = None
 
-def build_suffix_grid(cfg: TextureSuffixConfig) -> List[List[str]]:
-    """
-    suffix_index の順で各カテゴリの許容キー一覧を収集し、二次元配列として返す。
-    行 = suffix_index の順
-    列 = その行（カテゴリ）の候補キー
-    """
-    grid: List[List[str]] = []
-    for cat in cfg.suffix_index:
-        grid.append(cfg.allowed_keys(cat))
-    return grid
 
 def validate_suffixes(
     suffix_list: List[str],

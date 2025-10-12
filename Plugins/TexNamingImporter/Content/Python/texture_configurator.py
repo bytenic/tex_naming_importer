@@ -8,7 +8,6 @@ if str(_THIS_DIR) not in sys.path:
 
 import validator
 from texture_config import overwrite_address_uv, load_params_map_json
-from suffix_config import TextureSuffixConfig, load_texture_suffix_config
 from type_define import AddressMode
 from config import Config, TextureConfigParams
 from path_utils.path_functions import *
@@ -48,18 +47,17 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def get_address_settings_from_suffix(suffixes: List[str], suffix_settings: TextureSuffixConfig):
+def get_address_settings_from_suffix(suffixes: List[str], config_data: Config):
     for suf in suffixes:
-        if suffix_settings.has_2d(suf):
-            return suffix_settings.get_uv(suf)
-        if suffix_settings.has_3d(suf):
-            return suffix_settings.get_uvw(suf)
+        if config_data.has_suffix_2d(suf):
+            return config_data.get_uv(suf)
+        if config_data.has_suffix_3d(suf):
+            return config_data.get_uvw(suf)
     return (AddressMode.WRAP, AddressMode.WRAP)
 
 
 def get_texture_settings_from_suffixes(suffixes: List[str],
-                                        texture_settings: Dict[str, TextureConfigParams],
-                                        suffix_settings: TextureSuffixConfig):
+                                        texture_settings: Dict[str, TextureConfigParams]):
     for suf in suffixes:
         if suf in texture_settings:
             return texture_settings[suf]
@@ -68,16 +66,15 @@ def get_texture_settings_from_suffixes(suffixes: List[str],
 
 def build_texture_config_params(suffixes: List[str],
                                 tex_settings_dict: Dict[str, TextureConfigParams],
-                                suffix_settings: TextureSuffixConfig)-> TextureConfigParams:
-    base_settings = get_texture_settings_from_suffixes(suffixes, tex_settings_dict, suffix_settings)
+                                config_data: Config)-> TextureConfigParams:
+    base_settings = get_texture_settings_from_suffixes(suffixes, tex_settings_dict)
     # 現状はTex2Dのみ対応
-    address_u, address_v = get_address_settings_from_suffix(suffixes, suffix_settings)
+    address_u, address_v = get_address_settings_from_suffix(suffixes, config_data)
     return overwrite_address_uv(base_settings, address_u, address_v)
 
 
 def apply_texture_property_from_config(texture_list: List[str], texture_config_path: str, suffix_config_path: str, config_path) -> int:
     tex_settings_dict = load_params_map_json(texture_config_path)
-    suffix_settings = load_texture_suffix_config(suffix_config_path)
 
     config_data = Config.load(config_path)
     suffix_grid = config_data.build_suffix_grid()
@@ -103,7 +100,7 @@ def apply_texture_property_from_config(texture_list: List[str], texture_config_p
         #     print("Invalid Directory")
         #     print(f"---import end  {tex_path} ---")
         #     continue
-        texture_settings = build_texture_config_params(suffixes, tex_settings_dict, suffix_settings)
+        texture_settings = build_texture_config_params(suffixes, tex_settings_dict, config_data)
         print(f"import property: {texture_settings}")
         importer = TextureConfigurator(params=texture_settings)
         import_result_dict = importer.apply(tex_path)
