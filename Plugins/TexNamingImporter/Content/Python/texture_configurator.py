@@ -78,11 +78,11 @@ def build_texture_config_params(suffixes: List[str],
 def apply_texture_property_from_config(texture_list: List[str], texture_config_path: str, suffix_config_path: str, config_path) -> int:
     tex_settings_dict = load_params_map_json(texture_config_path)
     suffix_settings = load_texture_suffix_config(suffix_config_path)
-    
-    suffix_grid = validator.build_suffix_grid(suffix_settings)
+
+    config_data = Config.load(config_path)
+    suffix_grid = config_data.build_suffix_grid()
+    print(f'suffix:{suffix_grid}')
     all_suffixes = [suf for row in suffix_grid for suf in row]
-    config_data = Config()
-    config_data = config_data.load(config_path)
     print(config_data)
     for tex_path in texture_list:
         print(f"---import begin  {tex_path} ---")

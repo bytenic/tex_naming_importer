@@ -19,7 +19,7 @@
         "mw": ["MIRROR", "WRAP"], 
         "mm": ["MIRROR", "MIRROR"]
     }, 
-    "suffix_index": ["texture_type", "address_suffix_2d"], 
+    "suffix_index": ["texture_config", "address_suffix_2d"], 
     "texture_config": {
         "col": {
             "address_u": "WRAP", 

@@ -262,6 +262,24 @@ class Config:
         if self.address_suffix_3d:
             out["address_suffix_3d"] = {k: [u.name, v.name, w.name] for k, (u, v, w) in self.address_suffix_3d.items()}
         return out
+    
+    def build_suffix_grid(self)->List[List[str]]:
+        """
+        suffix_index の順で各カテゴリの許容キー一覧を収集し、二次元配列として返す。
+        行 = suffix_index の順
+        列 = その行（カテゴリ）の候補キー
+        """
+        grid: List[List[str]] = []
+        for cat in self.suffix_index:
+            if(hasattr(self, cat)):
+                attr = getattr(self, cat)
+                keys = []
+                if isinstance(attr, dict):
+                    keys = list(attr.keys())
+                elif isinstance(attr, list):
+                    keys = list(attr)
+                grid.append(keys)
+        return grid
 
     @classmethod
     def load(cls, file_path: Union[str, Path]) -> "Config":
