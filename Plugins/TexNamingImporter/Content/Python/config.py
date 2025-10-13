@@ -100,7 +100,7 @@ class TextureConfigParams:
             compression=cls._enum(CompressionKind, d.get("compression")),
             srgb=cls._enum(SRGBMode, d.get("srgb")),
             mip_gen=cls._enum(MipGenKind, d.get("mip_gen")) or MipGenKind.FROM_TEXTURE_GROUP,
-            texture_group=cls._enum(TextureGroupKind, d.get("texture_group")) or TextureGroupKind.WORLD,
+            texture_group=cls._enum(TextureGroupKind, d.get("texture_group")) or TextureGroupKind.WORLD
         )
 
     def to_dict(self, *, minimal: bool = True) -> dict:
@@ -117,7 +117,7 @@ class TextureConfigParams:
             "compression": _enum_name(self.compression),
             "srgb": _enum_name(self.srgb),
             "mip_gen": _enum_name(self.mip_gen),
-            "texture_group": _enum_name(self.texture_group),
+            "texture_group": _enum_name(self.texture_group)
         }
         return {k: v for k, v in out.items() if not minimal or v is not None}
 
@@ -173,6 +173,9 @@ class Config:
 
     # テクスチャタイプごとの詳細設定
     texture_config: Dict[str, TextureConfigParams] = field(default_factory=dict)
+
+    enable_subuv_texture_override: bool = False
+    subuv_max_in_game: NumericSize = 2048
 
     # ---------- 読み書き ----------
     @classmethod
@@ -240,6 +243,9 @@ class Config:
                 raise ValueError(f"texture_config['{key}'] はオブジェクトで指定してください")
             params_map[key] = TextureConfigParams.from_dict(val)
 
+        enable_subuv_texture_override=bool(data.get("enable_subuv_texture_override", False)),
+        subuv_max_in_game = int(data.get("subuv_max_in_game"))
+
         return cls(
             run_dir=list(run_dir),
             texture_type=list(tt),
@@ -247,6 +253,8 @@ class Config:
             address_suffix_3d=map3d,
             suffix_index=list(suf_index),
             texture_config=params_map,
+            enable_subuv_texture_override=enable_subuv_texture_override,
+            subuv_max_in_game=subuv_max_in_game
         )
 
     def to_dict(self) -> dict:
@@ -261,6 +269,12 @@ class Config:
             out["address_suffix_2d"] = {k: [u.name, v.name] for k, (u, v) in self.address_suffix_2d.items()}
         if self.address_suffix_3d:
             out["address_suffix_3d"] = {k: [u.name, v.name, w.name] for k, (u, v, w) in self.address_suffix_3d.items()}
+        
+        if self.enable_subuv_texture_override:
+            out["enable_subuv_texture_override"] = self.enable_subuv_texture_override
+        if self.subuv_max_in_game is not None:
+            out["subuv_max_in_game"] = self.subuv_max_in_game
+            
         return out
     
     def build_suffix_grid(self)->List[List[str]]:
@@ -296,7 +310,6 @@ class Config:
         with p.open("w", encoding="utf-8") as f:
             json.dump(self.to_dict(), f, indent=indent, ensure_ascii=ensure_ascii)
 
-    # ---------- 便利メソッド ----------
     def has_suffix_2d(self, key: str) -> bool:
         """与えられたキーが 2D サフィックス表に存在するか。"""
         return key in self.address_suffix_2d

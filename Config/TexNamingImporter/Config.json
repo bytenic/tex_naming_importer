@@ -81,5 +81,8 @@
             "mip_gen": "FROM_TEXTURE_GROUP", 
             "texture_group": "EFFECTS"
         }
-    }
+    },
+    "enable_subuv_texture_override": true,
+    "subuv_max_in_game": 2048
+    
 }
