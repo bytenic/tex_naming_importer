@@ -322,3 +322,19 @@ class Config:
             u, v = self.address_suffix_2d[key]
             return (u, v, v)  # 2D → 3D は V を W に流用（ポリシーに応じて変更可）
         raise KeyError(key)
+
+
+def overwrite_address_uv(params: TextureConfigParams, u: AddressMode, v: AddressMode) -> TextureConfigParams:
+    """
+    TextureConfigParams の address_u / address_v を“破壊的（in-place）”に上書きします。
+    clear_z=True の場合、address_z を None にクリアします（3D/Cube等でU/Vのみ使いたいときに便利）。
+    戻り値は同じインスタンス（チェーン用に返すだけ）。
+    """
+    if not isinstance(params, TextureConfigParams):
+        raise TypeError("params must be TextureConfigParams")
+    if not isinstance(u, AddressMode) or not isinstance(v, AddressMode):
+        raise TypeError("u, v must be AddressMode")
+
+    params.address_u = u
+    params.address_v = v
+    return params

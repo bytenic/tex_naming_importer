@@ -7,9 +7,8 @@ if str(_THIS_DIR) not in sys.path:
     sys.path.insert(0, str(_THIS_DIR))
 
 import validator
-from texture_config import overwrite_address_uv, load_params_map_json
 from type_define import AddressMode
-from config import Config, TextureConfigParams
+from config import Config, TextureConfigParams, overwrite_address_uv
 from path_utils.path_functions import *
 
 from detail_unreal.texture_configurator_unreal import TextureConfigurator
@@ -69,13 +68,12 @@ def build_texture_config_params(suffixes: List[str],
                                 config_data: Config)-> TextureConfigParams:
     base_settings = get_texture_settings_from_suffixes(suffixes, tex_settings_dict)
     # 現状はTex2Dのみ対応
+    print(f"Base settings from suffixes: {base_settings}")
     address_u, address_v = get_address_settings_from_suffix(suffixes, config_data)
     return overwrite_address_uv(base_settings, address_u, address_v)
 
 
 def apply_texture_property_from_config(texture_list: List[str], texture_config_path: str, suffix_config_path: str, config_path) -> int:
-    tex_settings_dict = load_params_map_json(texture_config_path)
-
     config_data = Config.load(config_path)
     suffix_grid = config_data.build_suffix_grid()
     print(f'suffix:{suffix_grid}')
@@ -100,7 +98,7 @@ def apply_texture_property_from_config(texture_list: List[str], texture_config_p
         #     print("Invalid Directory")
         #     print(f"---import end  {tex_path} ---")
         #     continue
-        texture_settings = build_texture_config_params(suffixes, tex_settings_dict, config_data)
+        texture_settings = build_texture_config_params(suffixes, config_data.texture_config, config_data)
         print(f"import property: {texture_settings}")
         importer = TextureConfigurator(params=texture_settings)
         import_result_dict = importer.apply(tex_path)

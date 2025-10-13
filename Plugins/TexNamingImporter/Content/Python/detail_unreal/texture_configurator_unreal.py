@@ -1,14 +1,14 @@
 import math
 import sys
 from pathlib import Path
-import unreal
 from typing import Union, Dict, List
+import unreal
 
 _THIS_DIR = Path(__file__).resolve().parent
 if str(_THIS_DIR) not in sys.path:
     sys.path.insert(0, str(_THIS_DIR))
 
-from texture_config import TextureConfigParams, NumericSize
+from config import TextureConfigParams, NumericSize
 from type_define import (
     AddressMode,
     CompressionKind,
