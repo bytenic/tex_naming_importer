@@ -19,22 +19,12 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "テクスチャ設定最小CLI\n"
             "以下の4つの位置引数を受け取り、execute_texture_config を呼び出します。\n"
-            "  1) TextureSettings の JSON パス\n"
-            "  2) SuffixSettings の JSON パス\n"
-            "  3) DirectorySettings の JSON パス\n"
-            "  4) テクスチャアセットパス（例: /Game/Textures/T_Sample.T_Sample）"
+            "  1) Configファイル の JSON パス\n"
+            "  2) テクスチャアセットパス（例: /Game/Textures/T_Sample.T_Sample）"
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    parser.add_argument(
-        "texture_config_path",
-        help="TextureSettings の JSON ファイルパス。例: {ProjectDir}/Config/TexNamingImporter/TextureSettings.json",
-    )
-    parser.add_argument(
-        "suffix_config_path",
-        help="SuffixSettings の JSON ファイルパス。例: {ProjectDir}/Config/TexNamingImporter/SuffixSettings.json",
-    )
     parser.add_argument(
         "config_path",
         help="Config の JSON ファイルパス。例: {ProjectDir}/Config/TexNamingImporter/Config.json",
@@ -73,7 +63,7 @@ def build_texture_config_params(suffixes: List[str],
     return overwrite_address_uv(base_settings, address_u, address_v)
 
 
-def apply_texture_property_from_config(texture_list: List[str], texture_config_path: str, suffix_config_path: str, config_path) -> int:
+def apply_texture_property_from_config(texture_list: List[str], config_path: str) -> int:
     config_data = Config.load(config_path)
     suffix_grid = config_data.build_suffix_grid()
     print(f'suffix:{suffix_grid}')
@@ -119,8 +109,6 @@ if __name__ == "__main__":
     try:
         ret = apply_texture_property_from_config(
             texture_list=textures,
-            texture_config_path=args.texture_config_path,
-            suffix_config_path=args.suffix_config_path,
             config_path=args.config_path
         )
         sys.exit(int(ret) if isinstance(ret, int) else 1)
