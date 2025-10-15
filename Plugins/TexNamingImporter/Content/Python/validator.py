@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import Dict, List, Optional, Iterable
 
 @dataclass
@@ -139,5 +140,27 @@ def validate_directory(asset_path: str, allowed_dirs: Iterable[str]) -> bool:
 
     for d in allowed_dirs or []:
         if _is_under_dir(path_dir, d):
+            return True
+    return False
+
+
+def regex_any_match(pattern: str, candidates: List[str]) -> bool:
+    '''
+    第1引数の正規表現パターンに対して、第2引数の文字列リストのいずれかがマッチするかを判定します。
+      - マッチが1つでもあれば True
+      - 1つもマッチしなければ False
+      - パターンが不正（re.error）の場合は False
+    ここでの「マッチ」は re.search（部分一致）です。完全一致は ^ と $ を使ってください。
+    '''
+    if not pattern or not candidates:
+        return False
+    try:
+        reg = re.compile(pattern)
+    except re.error:
+        return False
+    for s in candidates:
+        if s is None:
+            continue
+        if reg.search(str(s)):
             return True
     return False

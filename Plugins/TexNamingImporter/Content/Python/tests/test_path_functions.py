@@ -21,7 +21,8 @@ class TestCollectSuffixesFromPath(unittest.TestCase):
         ]
         for path, expected in cases:
             with self.subTest(path=path):
-                self.assertEqual(collect_suffixes_from_path(path, SUFFIX_ARRAY), expected)
+                suffix, tokens = collect_suffixes_from_path(path, SUFFIX_ARRAY)
+                self.assertEqual(suffix, expected)
 
     def test_two_suffixes_found(self):
         # 末尾から2連続のサフィックスが見つかるケース
@@ -32,7 +33,8 @@ class TestCollectSuffixesFromPath(unittest.TestCase):
         ]
         for path, expected in cases:
             with self.subTest(path=path):
-                self.assertEqual(collect_suffixes_from_path(path, SUFFIX_ARRAY), expected)
+                suffix, tokens = collect_suffixes_from_path(path, SUFFIX_ARRAY)
+                self.assertEqual(suffix, expected)
 
     def test_ending_not_suffix(self):
         # 末尾トークンがサフィックスではないため打ち切り（空配列）
@@ -43,7 +45,8 @@ class TestCollectSuffixesFromPath(unittest.TestCase):
         ]
         for path, expected in cases:
             with self.subTest(path=path):   
-                self.assertEqual(collect_suffixes_from_path(path, SUFFIX_ARRAY), expected)
+                suffix, tokens = collect_suffixes_from_path(path, SUFFIX_ARRAY)
+                self.assertEqual(suffix, expected)
 
     def test_three_tokens_one_not_in_array(self):
         # _区切りの3トークンのうち1つが suffix_array に無いケース
@@ -60,7 +63,8 @@ class TestCollectSuffixesFromPath(unittest.TestCase):
         ]
         for path, expected in cases:
             with self.subTest(path=path):
-                self.assertEqual(collect_suffixes_from_path(path, SUFFIX_ARRAY), expected)
+                suffix, tokens = collect_suffixes_from_path(path, SUFFIX_ARRAY)
+                self.assertEqual(suffix, expected)
 
 
 if __name__ == "__main__":

@@ -8,10 +8,12 @@ if str(_THIS_DIR) not in sys.path:
 
 import validator
 from type_define import AddressMode
-from config import Config, TextureConfigParams, overwrite_address_uv
+from config import Config, TextureConfigParams, override_address_uv, override_subuv_max_in_game
 from path_utils.path_functions import *
 
 from detail_unreal.texture_configurator_unreal import TextureConfigurator
+
+SUBUV_PATTERN = r'^[1-9]\d*[xX][1-9]\d*$'  # 例: 8x8, 4x4, 1x8
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -60,18 +62,20 @@ def build_texture_config_params(suffixes: List[str],
     # 現状はTex2Dのみ対応
     print(f"Base settings from suffixes: {base_settings}")
     address_u, address_v = get_address_settings_from_suffix(suffixes, config_data)
-    return overwrite_address_uv(base_settings, address_u, address_v)
+    return override_address_uv(base_settings, address_u, address_v)
 
 
 def apply_texture_property_from_config(texture_list: List[str], config_path: str) -> int:
     config_data = Config.load(config_path)
     suffix_grid = config_data.build_suffix_grid()
-    print(f'suffix:{suffix_grid}')
+    #print(f'suffix:{suffix_grid}')
     all_suffixes = [suf for row in suffix_grid for suf in row]
-    print(config_data)
+    #print(config_data)
     for tex_path in texture_list:
         print(f"---import begin  {tex_path} ---")
-        suffixes = collect_suffixes_from_path(tex_path, all_suffixes)
+        suffixes,tokens = collect_suffixes_from_path(tex_path, all_suffixes)
+        #print(f"collected suffixes: {suffixes}")
+        print(tokens)
         suffix_result = validator.validate_suffixes(suffixes, suffix_grid)
         print(suffix_result)  
         if suffix_result.ok:
@@ -89,6 +93,11 @@ def apply_texture_property_from_config(texture_list: List[str], config_path: str
         #     print(f"---import end  {tex_path} ---")
         #     continue
         texture_settings = build_texture_config_params(suffixes, config_data.texture_config, config_data)
+        if config_data.enable_subuv_texture_override: 
+            if validator.regex_any_match(SUBUV_PATTERN, tokens):
+                texture_settings = override_subuv_max_in_game(texture_settings, config_data.subuv_max_in_game)
+                print("suffix override")
+        
         print(f"import property: {texture_settings}")
         importer = TextureConfigurator(params=texture_settings)
         import_result_dict = importer.apply(tex_path)

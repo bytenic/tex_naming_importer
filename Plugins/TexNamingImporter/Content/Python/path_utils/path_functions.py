@@ -1,9 +1,11 @@
 import os
 from typing import List, Sequence
 
-def collect_suffixes_from_path(src_path: str, suffix_array: Sequence[str]) -> List[str]:
+def collect_suffixes_from_path(src_path: str, suffix_array: Sequence[str]) -> (List[str], List[str]):
     """
     与えられたパスのファイル名から、末尾側に連続して並ぶサフィックス群を抽出して返す。
+
+    戻り値: (見つかったサフィックスのリスト, トークン全体のリスト)
 
     仕様:
       - 区切りは '_'（アンダースコア）。
@@ -20,18 +22,18 @@ def collect_suffixes_from_path(src_path: str, suffix_array: Sequence[str]) -> Li
       - 大文字小文字は区別する（厳密一致）。必要なら呼び出し側で揃えてください。
     """
     if not suffix_array:
-        return []
+        return ([],[])
 
     suffix_set = set(suffix_array)
 
     base = os.path.basename(src_path)
     stem, _ext = os.path.splitext(base)
     if not stem:
-        return []
+        return ([],[])
 
     tokens = [t for t in stem.split('_') if t != '']
     if not tokens:
-        return []
+        return ([],[])
 
     collected_rev: List[str] = []
     for tok in reversed(tokens):
@@ -41,7 +43,7 @@ def collect_suffixes_from_path(src_path: str, suffix_array: Sequence[str]) -> Li
             break
 
     if not collected_rev:
-        return []
+        return ([],[])
 
-    return list(reversed(collected_rev))
+    return (list(reversed(collected_rev)), tokens)
 

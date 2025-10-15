@@ -337,7 +337,7 @@ class Config:
         raise KeyError(key)
 
 
-def overwrite_address_uv(params: TextureConfigParams, u: AddressMode, v: AddressMode) -> TextureConfigParams:
+def override_address_uv(params: TextureConfigParams, u: AddressMode, v: AddressMode) -> TextureConfigParams:
     """
     TextureConfigParams の address_u / address_v を“破壊的（in-place）”に上書きします。
     clear_z=True の場合、address_z を None にクリアします（3D/Cube等でU/Vのみ使いたいときに便利）。
@@ -350,4 +350,15 @@ def overwrite_address_uv(params: TextureConfigParams, u: AddressMode, v: Address
 
     params.address_u = u
     params.address_v = v
+    return params
+
+def override_subuv_max_in_game(params: TextureConfigParams, max_in_game: NumericSize) -> TextureConfigParams:
+    """
+    TextureConfigParams の max_in_game を“破壊的（in-place）”に上書きします。
+    戻り値は同じインスタンス（チェーン用に返すだけ）。
+    """
+    if not isinstance(params, TextureConfigParams):
+        raise TypeError("params must be TextureConfigParams")
+    
+    params.max_in_game = TextureConfigParams._size_to_int(max_in_game)
     return params
