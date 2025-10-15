@@ -83,14 +83,6 @@ def apply_texture_property_from_config(texture_list: List[str], config_data: Con
             print(f"Suffix Error: {suffix_result.error}")
             continue  # サフィックスエラーならインポートしない
 
-        # c++側で判定するのでコメントアウト
-        #is_valid_dir = validator.validate_directory(tex_path, run_directory)
-        #if is_valid_dir:
-        #     print("Valid Directory")
-        # else:
-        #     print("Invalid Directory")
-        #     print(f"---import end  {tex_path} ---")
-        #     continue
         texture_settings = build_texture_config_params(suffixes, config_data.texture_config, config_data)
         if config_data.enable_subuv_texture_override: 
             if validator.regex_any_match(SUBUV_PATTERN, tokens):
