@@ -65,8 +65,7 @@ def build_texture_config_params(suffixes: List[str],
     return override_address_uv(base_settings, address_u, address_v)
 
 
-def apply_texture_property_from_config(texture_list: List[str], config_path: str) -> int:
-    config_data = Config.load(config_path)
+def apply_texture_property_from_config(texture_list: List[str], config_data: Config) -> int:
     suffix_grid = config_data.build_suffix_grid()
     #print(f'suffix:{suffix_grid}')
     all_suffixes = [suf for row in suffix_grid for suf in row]
@@ -116,9 +115,10 @@ if __name__ == "__main__":
     textures = [args.texture_path]
     # execute_texture_config() 呼び出し（戻り値が int ならそれを終了コードに、そうでなければ 1）
     try:
+        config_data = Config.load(args.config_path)
         ret = apply_texture_property_from_config(
             texture_list=textures,
-            config_path=args.config_path
+            config_data=config_data
         )
         sys.exit(int(ret) if isinstance(ret, int) else 1)
     except SystemExit:
