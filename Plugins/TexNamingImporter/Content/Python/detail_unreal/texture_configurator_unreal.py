@@ -1,7 +1,7 @@
 import math
 import sys
 from pathlib import Path
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Callable
 import unreal
 
 _THIS_DIR = Path(__file__).resolve().parent
@@ -174,6 +174,22 @@ class TextureConfigurator:
         texture = _get_texture_from_path(path_name)
         p = self.params
         report = {"ok": True, "applied": [], "errors": []}
+        revert_actions: List[Callable[[], None]] = []
+
+        def _revert_with(setter: Callable[[], None]) -> None:
+            revert_actions.append(setter)
+
+        def _set_attr(attr: str, value) -> None:
+            original = getattr(texture, attr)
+            setattr(texture, attr, value)
+            _revert_with(lambda texture=texture, attr=attr, original=original: setattr(texture, attr, original))
+
+        def _set_editor_property(name: str, value) -> None:
+            original = texture.get_editor_property(name)
+            texture.set_editor_property(name, value)
+            _revert_with(
+                lambda texture=texture, name=name, original=original: texture.set_editor_property(name, original)
+            )
 
         if not isinstance(texture, unreal.Texture):
             msg = "apply(): first argument must be unreal.Texture"
@@ -188,10 +204,10 @@ class TextureConfigurator:
             # 1) Address
             if p.address_u is not None and p.address_v is not None:
                 try:
-                    texture.address_x = self._ua(p.address_u)
-                    texture.address_y = self._ua(p.address_v)
+                    _set_attr("address_x", self._ua(p.address_u))
+                    _set_attr("address_y", self._ua(p.address_v))
                     if p.address_z is not None and hasattr(texture, "address_z"):
-                        texture.address_z = self._ua(p.address_z)
+                        _set_attr("address_z", self._ua(p.address_z))
                     report["applied"].append("address")
                 except Exception as e:
                     report["ok"] = False
@@ -206,9 +222,9 @@ class TextureConfigurator:
                     if size > 0:
                         size = max(16, min(size, 16384))
                     if hasattr(texture, "max_texture_size"):
-                        texture.max_texture_size = size
+                        _set_attr("max_texture_size", size)
                     else:
-                        texture.set_editor_property("MaxTextureSize", size)
+                        _set_editor_property("MaxTextureSize", size)
                     report["applied"].append("max_in_game")
                 except Exception as e:
                     report["ok"] = False
@@ -217,7 +233,7 @@ class TextureConfigurator:
             # 3) Compression（sRGB AUTO 参照元）
             if p.compression is not None:
                 try:
-                    texture.compression_settings = self._uc(p.compression)
+                    _set_attr("compression_settings", self._uc(p.compression))
                     report["applied"].append("compression")
                 except Exception as e:
                     report["ok"] = False
@@ -235,9 +251,9 @@ class TextureConfigurator:
                         desired = (p.srgb is SRGBMode.ON)
 
                     if hasattr(texture, "srgb"):
-                        texture.srgb = bool(desired)
+                        _set_attr("srgb", bool(desired))
                     else:
-                        texture.set_editor_property("SRGB", bool(desired))
+                        _set_editor_property("SRGB", bool(desired))
                     report["applied"].append("srgb")
                 except Exception as e:
                     report["ok"] = False
@@ -247,7 +263,7 @@ class TextureConfigurator:
             try:
                 tg = self._utg(p.texture_group)
                 # C++プロパティ名は LODGroup。Python では set_editor_property が確実。
-                texture.set_editor_property("LODGroup", tg)
+                _set_editor_property("LODGroup", tg)
                 report["applied"].append("texture_group")
             except Exception as e:
                 report["ok"] = False
@@ -256,18 +272,31 @@ class TextureConfigurator:
             # === 6) MipGenSettings ===
             try:
                 mg = self._um(p.mip_gen)
-                texture.set_editor_property("MipGenSettings", mg)
+                _set_editor_property("MipGenSettings", mg)
                 report["applied"].append("mip_gen")
             except Exception as e:
                 report["ok"] = False
                 report["errors"].append(f"mip_gen: {e}")
 
             # 一括反映
-            unreal.EditorAssetLibrary.save_loaded_asset(texture)            
             path = texture.get_path_name()
             if report["ok"]:
+                unreal.EditorAssetLibrary.save_loaded_asset(texture)
                 unreal.log(f"[TextureConfigurator] Applied to {path} ({', '.join(report['applied']) or 'no-op'})")
             else:
+                # Rollback all modifications done so far
+                for revert in reversed(revert_actions):
+                    try:
+                        revert()
+                    except Exception as revert_error:
+                        report["errors"].append(f"rollback: {revert_error}")
+                report["applied"] = []
+                cancel = getattr(trans, "cancel", None)
+                if callable(cancel):
+                    try:
+                        cancel()
+                    except Exception as cancel_error:
+                        report["errors"].append(f"transaction_cancel: {cancel_error}")
                 unreal.log_warning(f"[TextureConfigurator] Applied with errors on {path}: {report['errors']}")
 
             return report
