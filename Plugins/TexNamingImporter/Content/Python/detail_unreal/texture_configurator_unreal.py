@@ -46,6 +46,26 @@ def _get_texture_from_path(path: str) -> unreal.Texture:
     return asset  # type: ignore[return-value]
 
 
+def delete_texture_asset(texture_path: str) -> bool:
+    """指定されたテクスチャアセットを削除する。"""
+    if not texture_path:
+        raise ValueError("texture_path must be non-empty")
+
+    package_path = texture_path.split(".", 1)[0]
+    editor_lib = unreal.EditorAssetLibrary
+
+    if not editor_lib.does_asset_exist(package_path):
+        unreal.log_warning(f"[TextureConfigurator] Delete skipped. Asset not found: {package_path}")
+        return False
+
+    deleted = editor_lib.delete_asset(package_path)
+    if deleted:
+        unreal.log(f"[TextureConfigurator] Deleted texture asset: {package_path}")
+    else:
+        unreal.log_error(f"[TextureConfigurator] Failed to delete texture asset: {package_path}")
+    return deleted
+
+
 class TextureConfigurator:
     """
     - __init__(*, params: TextureConfigParams) で設定値を受け取る
