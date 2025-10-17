@@ -45,6 +45,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="サフィックスエラー時にテクスチャアセットを削除する場合は --delete を指定。",
         action="store_true"
     )
+    parser.add_argument(
+        "--dialog",
+        help="サフィックスエラーやインポート失敗時にダイアログを表示する場合は --dialog を指定。",
+        action="store_true"
+    )
     return parser
 
 
@@ -162,7 +167,8 @@ if __name__ == "__main__":
         ret = apply_texture_property_from_config(
             texture_list=textures,
             config_data=config_data,
-            delete_on_suffix_error=args.delete
+            delete_on_suffix_error=args.delete,
+            show_dialog_on_error=args.dialog
         )
         sys.exit(int(ret) if isinstance(ret, int) else 1)
     except SystemExit:
