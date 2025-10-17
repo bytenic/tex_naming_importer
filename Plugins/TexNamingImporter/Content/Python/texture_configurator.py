@@ -1,4 +1,5 @@
 import sys, argparse
+import traceback
 from pathlib import Path
 from typing import List, Dict
 
@@ -14,6 +15,7 @@ from path_utils.path_functions import *
 from detail_unreal.texture_configurator_unreal import (
     TextureConfigurator,
     delete_texture_asset,
+    show_texture_configurator_dialog,
 )
 
 SUBUV_PATTERN = r'^[1-9]\d*[xX][1-9]\d*$'  # 例: 8x8, 4x4, 1x8
@@ -77,6 +79,7 @@ def apply_texture_property_from_config(
     texture_list: List[str],
     config_data: Config,
     delete_on_suffix_error: bool = False,
+    show_dialog_on_error: bool = False,
 ) -> int:
     suffix_grid = config_data.build_suffix_grid()
     #print(f'suffix:{suffix_grid}')
@@ -93,6 +96,14 @@ def apply_texture_property_from_config(
             print("Suffix OK")
         else:
             print(f"Suffix Error: {suffix_result.error}")
+            if show_dialog_on_error:
+                show_texture_configurator_dialog(
+                    title="Texture Configurator - Suffix Error",
+                    message=(
+                        f"テクスチャ {tex_path} のサフィックスが不正です。\n"
+                        f"詳細: {suffix_result.error}"
+                    ),
+                )
             if delete_on_suffix_error:
                 try:
                     deleted = delete_texture_asset(tex_path)
@@ -109,12 +120,34 @@ def apply_texture_property_from_config(
         
         print(f"import property: {texture_settings}")
         importer = TextureConfigurator(params=texture_settings)
-        import_result_dict = importer.apply(tex_path)
+        try:
+            import_result_dict = importer.apply(tex_path)
+        except Exception as import_error:
+            tb = traceback.format_exc()
+            print(f"Import Exception: {import_error}\n{tb}")
+            if show_dialog_on_error:
+                show_texture_configurator_dialog(
+                    title="Texture Configurator - Import Exception",
+                    message=(
+                        f"テクスチャ {tex_path} の設定適用中に例外が発生しました。\n"
+                        f"Exception: {import_error}\n"
+                        f"Traceback:\n{tb}"
+                    ),
+                )
+            continue
         print(import_result_dict)
         if import_result_dict.get("ok"):
             print("Import Succeeded")
         else:
             print(f"Import Failed: {import_result_dict}")
+            if show_dialog_on_error:
+                show_texture_configurator_dialog(
+                    title="Texture Configurator - Import Failed",
+                    message=(
+                        f"テクスチャ {tex_path} の設定適用に失敗しました。\n"
+                        f"結果: {import_result_dict}"
+                    ),
+                )
         print(f"---import end  {tex_path} ---")
     return 0
 

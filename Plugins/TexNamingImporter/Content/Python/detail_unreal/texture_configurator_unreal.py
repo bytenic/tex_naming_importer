@@ -1,7 +1,7 @@
 import math
 import sys
 from pathlib import Path
-from typing import Union, Dict, List, Callable
+from typing import Union, Dict, List, Callable, Optional
 import unreal
 
 _THIS_DIR = Path(__file__).resolve().parent
@@ -64,6 +64,34 @@ def delete_texture_asset(texture_path: str) -> bool:
     else:
         unreal.log_error(f"[TextureConfigurator] Failed to delete texture asset: {package_path}")
     return deleted
+
+
+def show_texture_configurator_dialog(
+    title: str,
+    message: str,
+    *,
+    message_type: Optional["unreal.AppMsgType"] = None,
+) -> None:
+    """Show a dialog in the Unreal Editor. Fallback to log if unavailable."""
+    try:
+        if message_type is None:
+            message_type = getattr(unreal.AppMsgType, "OK", None)
+        default_value = getattr(unreal.AppReturnType, "OK", None)
+        if message_type is None or default_value is None:
+            unreal.log_warning(
+                f"[TextureConfigurator] Dialog not shown: AppMsgType/AppReturnType not available.\n{title}: {message}"
+            )
+            return
+        unreal.EditorDialog.show_message(
+            title=title,
+            message=message,
+            message_type=message_type,
+            default_value=default_value,
+        )
+    except Exception as dialog_error:  # pragma: no cover - best effort logging
+        unreal.log_error(
+            f"[TextureConfigurator] Failed to show dialog '{title}': {dialog_error}\n{message}"
+        )
 
 
 class TextureConfigurator:
