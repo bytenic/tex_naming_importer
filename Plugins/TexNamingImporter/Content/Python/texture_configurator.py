@@ -11,7 +11,10 @@ from type_define import AddressMode
 from config import Config, TextureConfigParams, override_address_uv, override_subuv_max_in_game
 from path_utils.path_functions import *
 
-from detail_unreal.texture_configurator_unreal import TextureConfigurator
+from detail_unreal.texture_configurator_unreal import (
+    TextureConfigurator,
+    delete_texture_asset,
+)
 
 SUBUV_PATTERN = r'^[1-9]\d*[xX][1-9]\d*$'  # 例: 8x8, 4x4, 1x8
 
@@ -65,7 +68,11 @@ def build_texture_config_params(suffixes: List[str],
     return override_address_uv(base_settings, address_u, address_v)
 
 
-def apply_texture_property_from_config(texture_list: List[str], config_data: Config) -> int:
+def apply_texture_property_from_config(
+    texture_list: List[str],
+    config_data: Config,
+    delete_on_suffix_error: bool = False,
+) -> int:
     suffix_grid = config_data.build_suffix_grid()
     #print(f'suffix:{suffix_grid}')
     all_suffixes = [suf for row in suffix_grid for suf in row]
@@ -81,6 +88,12 @@ def apply_texture_property_from_config(texture_list: List[str], config_data: Con
             print("Suffix OK")
         else:
             print(f"Suffix Error: {suffix_result.error}")
+            if delete_on_suffix_error:
+                try:
+                    deleted = delete_texture_asset(tex_path)
+                    print(f"Delete Texture ({'Succeeded' if deleted else 'Failed'}): {tex_path}")
+                except Exception as delete_error:
+                    print(f"Delete Texture Error: {delete_error}")
             continue  # サフィックスエラーならインポートしない
 
         texture_settings = build_texture_config_params(suffixes, config_data.texture_config, config_data)
@@ -110,7 +123,7 @@ if __name__ == "__main__":
         config_data = Config.load(args.config_path)
         ret = apply_texture_property_from_config(
             texture_list=textures,
-            config_data=config_data
+            config_data=config_data,
         )
         sys.exit(int(ret) if isinstance(ret, int) else 1)
     except SystemExit:
