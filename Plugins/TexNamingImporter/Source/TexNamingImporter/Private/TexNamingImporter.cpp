@@ -207,6 +207,7 @@ void FTexNamingImporterModule::RunPythonForTexture(class UTexture* Texture)
 	{
 				FString::Format(TEXT("{0}"), {FStringFormatArg(ConfigFilePath)}),
 				FString::Format(TEXT("{0}"), {FStringFormatArg(ObjectPath)}),
+				TEXT("--delete") //suffixエラー時に削除するオプション引数
 			});
 		if (!bOk)
 		{

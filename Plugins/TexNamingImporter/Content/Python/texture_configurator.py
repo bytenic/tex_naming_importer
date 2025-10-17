@@ -38,6 +38,11 @@ def build_parser() -> argparse.ArgumentParser:
         "texture_path",
         help="対象テクスチャの Unreal アセットパス。例: /Game/Textures/T_Sample.T_Sample",
     )
+    parser.add_argument(
+        "--delete",
+        help="サフィックスエラー時にテクスチャアセットを削除する場合は --delete を指定。",
+        action="store_true"
+    )
     return parser
 
 
@@ -124,6 +129,7 @@ if __name__ == "__main__":
         ret = apply_texture_property_from_config(
             texture_list=textures,
             config_data=config_data,
+            delete_on_suffix_error=args.delete
         )
         sys.exit(int(ret) if isinstance(ret, int) else 1)
     except SystemExit:
