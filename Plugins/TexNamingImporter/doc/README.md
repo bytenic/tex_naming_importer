@@ -7,12 +7,12 @@
   - [概要](#概要)
   - [インストール](#インストール)
   - [セットアップ手順](#セットアップ手順)
-  - [設定ファイル（設計とひな型）](#設定ファイル設計とひな型)
-    - [TextureConfig.json — 種類ごとの既定値](#textureconfigjson--種類ごとの既定値)
-      - [パラメータ解説（表）](#パラメータ解説表)
-    - [SuffixConfig.json — サフィックス定義](#suffixconfigjson--サフィックス定義)
-      - [パラメータ解説（表）](#パラメータ解説表-1)
-    - [DirectoryConfig.json — 実行対象パス](#directoryconfigjson--実行対象パス)
+  - [設定ファイル（Config.json）](#設定ファイルconfigjson)
+    - [トップレベルキー](#トップレベルキー)
+    - [texture_config の書式](#texture_config-の書式)
+    - [サフィックス関連の書式](#サフィックス関連の書式)
+    - [SubUV テクスチャ向け設定](#subuv-テクスチャ向け設定)
+    - [設定ファイルの例](#設定ファイルの例)
   - [トラブルシューティング](#トラブルシューティング)
   - [(エンジニア向け)動作の仕組み](#エンジニア向け動作の仕組み)
 
@@ -20,7 +20,8 @@
 
 ## 概要
 
-設定したディレクトリ配下にインポートされた `UTexture`を、設定ファイルと命名規則(サフィックス)に基づいて最適なプロパティ適用を行う Editor 用プラグインです。
+設定したディレクトリ配下にインポートされた `UTexture` を、設定ファイルと命名規則(サフィックス)に基づいて最適なプロパティ適用を行う
+Editor 用プラグインです。サフィックス検証に失敗したテクスチャは自動削除され、エラー内容はエディタのダイアログでも通知されます。
 
 ---
 
@@ -38,157 +39,126 @@
 ## セットアップ手順
 
 1. **設定フォルダ作成**  
-プロジェクトフォルダの以下の場所にディレクトリを作成してください。
+   プロジェクトフォルダの以下の場所にディレクトリを作成してください。
 
    ```
    {Projectの場所}/Config/TexNamingImporter/
    ```
 
-2. **3 つの JSON を配置**
-1で作成した設定ファイルを配置します。  
-これらのファイルのテンプレートはこのプラグインのルートフォルダにzipファイルで配置しています
+2. **Config.json を配置**  
+   1 で作成したフォルダに `Config.json` を配置します。テンプレートはプラグインルートの zip に含まれています。
+
    ```
    {PluginDir}/Config.zip
-    - TextureConfig.json
-    - SuffixConfig.json
-    - DirectoryConfig.json
+     └ Config.json
    ```
 
-1. **DirectorySettings.json を編集（必須）**  
-   処理対象とする `/Game/...` の**ルートパス**を `run_dir` に列挙します。  
-   これに含まれない場所へインポートされたテクスチャは**スキップ**されます。
+3. **Config.json を編集（必須）**  
+   - 処理対象とする `/Game/...` の**ルートパス**を `run_dir` に列挙します。
+   - サフィックスや種類ごとの設定を後述のフォーマットに従って記述します。
+   - ここに含まれない場所へインポートされたテクスチャは**スキップ**されます。
 
-2. **動作確認**  
-  1で設定したディレクトリ配下にテクスチャをインポートし、以下を確認します。
+4. **動作確認**  
+   3 で設定したディレクトリ配下にテクスチャをインポートし、以下を確認します。
 
-   * ログに「処理開始／適用パラメータ」が出る
-   * インポート後、テクスチャのプロパティが自動で反映されている
-
----
-
-## 設定ファイル（設計とひな型）
-
-> 3 つの JSON は **UTF-8** で保存してください。
-> 役割は「**種類ごとの既定値**」「**サフィックス定義**」「**実行対象パス**」に分離します。
-
-### TextureConfig.json — 種類ごとの既定値
-
-**目的**: テクスチャ**種類**（例: `col`, `msk`, `nml`, `mat`, `cub`, `flw` …）ごとに、
-**アドレスモード／圧縮／sRGB／最大解像度**を定義します。
-
-#### パラメータ解説（表）<a id="パラメータ解説表texturesettings"></a>
-
-> 形式：`{ "<type>": { ...パラメータ... }, ... }`（例：`"col"`, `"msk"`, `"nml"` など）
-
-| キー                 | 型       | 設定できる値                                              | 説明                        | 備考                                    |
-| ------------------ | ------- | ---------------------------------------------------- | ------------------------- | ------------------------------------- |
-| `address_u`        | string  | `WRAP` / `CLAMP` / `MIRROR`                          | U 軸のデフォルトテクスチャアドレスモード          | `SuffixSettings` のアドレスサフィックスで**上書きができます。詳細はSuffixConfig.jsonを参照してください** |
-| `address_v`        | string  | `WRAP` / `CLAMP` / `MIRROR`                          | V 軸のデフォルトアドレスモード               | 同上                                    |
-| `address_w` *(任意)* | string  | `WRAP` / `CLAMP` / `MIRROR`                          | **3D テクスチャ**用W軸のデフォルトアドレスモード | `address_suffix_3d` がある場合に使用          |
-| `max_in_game`      | number  | 0（無制限） / 256 / 512 / 1024 / 2048 / …               | **ゲーム内最大解像度**（px）     | 0 は無制限。POW2 丸めと併用推奨                   |
-| `enforce_pow2`     | boolean | `true` / `false`                                     | サイズを 2 の冪に正規化（丸め）         | 非 POW2 を避けたい場合に有効                     |
-| `compression`      | string  | `BC7` / `MASKS` / `NORMAL_MAP` / `HDR` / `ALPHA` / `GRAYSCALE`/ `EDITOR_ICON`/ `DISTANCE_FIELD_FONT`/  `DEFAULT` … | **圧縮設定名**           | エンジン側の列挙に準拠します                          |
-| `srgb`             | string  | `ON` / `OFF` / `AUTO`                                | sRGB フラグの扱い               | `AUTO` は種類や圧縮でそれらしい値を設定しますができる限り使用しないことを推奨します。                 |
-| `mip_gen`       | string | `FROM_TEXTURE_GROUP`(既定) / `NO_MIPMAPS` / `SIMPLE_AVERAGE` / `SHARPEN0`〜`SHARPEN8`                                                                                                                             | **MipGenSettings** を指定します。`FROM_TEXTURE_GROUP` は `texture_group`（LODGroup）に従います。 | 不正値は**エラー**として処理されます。   |
-| `texture_group` | string | `WORLD`(既定) / `WORLD_NORMAL_MAP` / `WORLD_SPECULAR` / `CHARACTER` / `CHARACTER_NORMAL_MAP` / `CHARACTER_SPECULAR` / `UI` / `LIGHTMAP` / `SHADOWMAP` / `SKYBOX` / `VEHICLE` / `CINEMATIC` / `EFFECTS` / `MEDIA` | **LODGroup**（TextureGroup）を指定します。                   | 不正値は**エラー**として処理されます。エンジンのビルドにより利用可能なグループが異なる場合があります。 |
-
-**設定例**
-
-```json
-{
-  "col": {
-    "address_u": "WRAP",
-    "address_v": "WRAP",
-    "max_in_game": 1024,
-    "enforce_pow2": true,
-    "compression": "BC7",
-    "srgb": "ON",
-    "mip_gen": "FROM_TEXTURE_GROUP",
-    "texture_group": "EFFECTS"
-  },
-  "msk": {
-    "address_u": "CLAMP",
-    "address_v": "CLAMP",
-    "max_in_game": 1024,
-    "enforce_pow2": true,
-    "compression": "MASKS",
-    "srgb": "OFF",
-    "mip_gen": "NO_MIPMAPS",
-    "texture_group": "EFFECTS"
-  },
-  "nml": {
-    "address_u": "WRAP",
-    "address_v": "WRAP",
-    "max_in_game": 1024,
-    "enforce_pow2": true,
-    "compression": "NORMAL_MAP",
-    "srgb": "OFF",
-    "mip_gen": "FROM_TEXTURE_GROUP",
-    "texture_group": "WORLD"
-  }
-}
-```
+   * ログに「処理開始／適用パラメータ／削除結果」が出る
+   * サフィックス誤りがあるテクスチャは削除され、エディタにダイアログが表示される
+   * 正常なテクスチャではプロパティが自動で反映されている
 
 ---
 
-### SuffixConfig.json — サフィックス定義
+## 設定ファイル（Config.json）
 
-**テクスチャ種類**（`texture_type`）、**アドレスモード**（2D: `address_suffix_2d` / 3D: `address_suffix_3d`）をテクスチャのサフィックスからします。**優先順位**は `suffix_index` で制御します。
+> `Config.json` は **UTF-8** で保存してください。
+> 旧バージョンで分割されていた 3 ファイル（Texture/Suffix/Directory）は **1 つの JSON** に統合されました。
 
-#### パラメータ解説（表）<a id="パラメータ解説表suffixsettings"></a>
+### トップレベルキー
 
-| キー                         | 型           | 設定値の例                                            |   | 説明                                    | 備考                         |
-| -------------------------- | ----------- | ---------------------------------------------------------- | -------- | ------------------------------------- | -------------------------- |
-| `texture_type`             | string[]    | `["col","msk","nml","mat","cub","flw"]`                    |  | **テクスチャの種類**                        | TextureConfig.jsonで設定した値をここに配置してください。        |
-| `address_suffix_2d`        | object(map) | `"cc": ["CLAMP","CLAMP"]` / `"ww": ["WRAP","WRAP"]`        |  | **2D 用のアドレスサフィックスです。ここに設定した値でテクスチャのアドレスモードをインポート時に上書きします。** | 例：`"cw": ["CLAMP","WRAP"]` |
-| `address_suffix_3d` *(任意)* | object(map) | `"cww": ["CLAMP","WRAP","WRAP"]`                           |  | **3D 用のアドレスサフィックスです。**。値=[U,V,W]       | 3D テクスチャを扱う場合に追加(**現在は無効にしています**)           |
-| `suffix_index`             | string[]    | `["texture_type","address_suffix_2d"]` |    | **サフィックスの配置順**                           | サフィックスの順序を定義します            |
+| キー | 型 | 説明 |
+| ---- | --- | --- |
+| `run_dir` | string[] | 処理対象とする `/Game/...` のルートパス一覧。ここに含まれないインポートはスキップされます。 |
+| `texture_type` | string[] | サフィックス判定に使用するテクスチャ種類。`texture_config` と対応させてください。 |
+| `suffix_index` | string[] | サフィックスの出現順・検索優先順位。例: `["texture_type", "address_suffix_2d"]` |
+| `address_suffix_2d` | object | `{ サフィックス: [U, V] }` の形で 2D アドレスモードを上書き。値は `WRAP` / `CLAMP` / `MIRROR` など。 |
+| `address_suffix_3d` *(任意)* | object | `{ サフィックス: [U, V, W] }` の形で 3D アドレスモードを上書き。3D テクスチャを扱うときに使用。 |
+| `texture_config` | object | テクスチャ種類ごとの既定設定。詳細は下記「texture_config の書式」を参照。 |
+| `enable_subuv_texture_override` *(任意)* | boolean | `true` で SubUV テクスチャ検知を有効化。`4x4` など `NxM` トークンが含まれる場合、`subuv_max_in_game` で上書き。 |
+| `subuv_max_in_game` *(任意)* | number / string | SubUV 検知時に使用する最大解像度。数値または `"AUTO"` / `"P2048"` など。 |
 
-**設定例**
+### `texture_config` の書式
+
+> 形式：`texture_config.{種類名} = { ...パラメータ... }`（例：`"col"`, `"msk"`, `"nml"` など）
+
+| キー | 型 | 設定できる値 | 説明 | 備考 |
+| ---- | --- | --- | --- | --- |
+| `address_u` / `address_v` / `address_z` *(任意)* | string | `WRAP` / `CLAMP` / `MIRROR` | テクスチャアドレスモード（U/V/W）。`address_suffix_*` で上書き可能。 | 3D テクスチャは `address_z` を利用。 |
+| `max_in_game` | number / string | 0（無制限） / 256 / 512 / … / `"AUTO"` / `"P2048"` | ゲーム内最大解像度（px）。 | `0` または `"AUTO"` は無制限扱い。 |
+| `enforce_pow2` | boolean | `true` / `false` | サイズを 2 の冪に正規化（丸め）。 |  |
+| `compression` | string | `BC7` / `MASKS` / `NORMAL_MAP` / `HDR` / `ALPHA` / `GRAYSCALE` / `EDITOR_ICON` / `DISTANCE_FIELD_FONT` / `DEFAULT` など | 圧縮設定名。 | Unreal Engine の列挙値に準拠。 |
+| `srgb` | string | `ON` / `OFF` / `AUTO` | sRGB フラグの扱い。 | `AUTO` は設定推測。可能なら明示指定を推奨。 |
+| `mip_gen` | string | `FROM_TEXTURE_GROUP` / `NO_MIPMAPS` / `SIMPLE_AVERAGE` / `SHARPEN0`〜`SHARPEN8` | `TextureMipGenSettings` の指定。 | 無効値はエラー。 |
+| `texture_group` | string | `WORLD` / `WORLD_NORMAL_MAP` / `WORLD_SPECULAR` / `CHARACTER` / `CHARACTER_NORMAL_MAP` / `CHARACTER_SPECULAR` / `UI` / `LIGHTMAP` / `SHADOWMAP` / `SKYBOX` / `VEHICLE` / `CINEMATIC` / `EFFECTS` / `MEDIA` など | `TextureGroup` の指定。 | エンジンビルドにより利用可能なグループが異なる場合があります。 |
+
+### サフィックス関連の書式
+
+* `texture_type` はテクスチャ種別を列挙します。例: `"col"`, `"msk"`, `"nml"` など。
+* `suffix_index` でサフィックスの読み取り順を定義します。例: `[{Texture名}_{texture_type}_{address_suffix_2d}]` の順。
+* `address_suffix_2d` / `address_suffix_3d` にサフィックス→アドレスモードを記述します。
+
+**suffix_index の例**
+
+- 有効な名前: **{Texture名}_col_cc**
+- 無効な名前: **{Texture名}_ww_nrm**（`suffix_index` に沿っていない）
+
+### SubUV テクスチャ向け設定
+
+* `enable_subuv_texture_override` を `true` にすると、サフィックスやファイル名に `4x4` など `NxM` 形式のトークンが含まれるテクスチャを SubUV とみなします。
+* SubUV と判定された場合、`subuv_max_in_game` の値で `max_in_game` を上書きします。
+
+### 設定ファイルの例
 
 ```json
 {
-  "texture_type": ["col", "msk", "nml", "mat", "cub", "flw"], //この値はTextureConfig.jsonのキーに連動しているので同じ値を設定してください。(将来的に削除予定)
+  "run_dir": ["/Game/VFX", "/Game/Debug"],
+  "texture_type": ["col", "msk", "nml", "mat", "cub", "flw"],
+  "suffix_index": ["texture_type", "address_suffix_2d"],
   "address_suffix_2d": {
     "cc": ["CLAMP", "CLAMP"],
     "cw": ["CLAMP", "WRAP"],
-    "cm": ["CLAMP", "MIRROR"],
-    "wc": ["WRAP",  "CLAMP"],
-    "ww": ["WRAP",  "WRAP"],
-    "wm": ["WRAP",  "MIRROR"],
-    "mc": ["MIRROR","CLAMP"],
-    "mw": ["MIRROR","WRAP"],
-    "mm": ["MIRROR","MIRROR"]
+    "wc": ["WRAP", "CLAMP"],
+    "ww": ["WRAP", "WRAP"]
   },
-  "address_suffix_3d": {
-    "cww": ["CLAMP", "WRAP", "WRAP"],
-    "mmc": ["MIRROR", "MIRROR", "CLAMP"]
+  "texture_config": {
+    "col": {
+      "address_u": "WRAP",
+      "address_v": "WRAP",
+      "max_in_game": 1024,
+      "enforce_pow2": true,
+      "compression": "BC7",
+      "srgb": "ON",
+      "mip_gen": "FROM_TEXTURE_GROUP",
+      "texture_group": "EFFECTS"
+    },
+    "msk": {
+      "address_u": "CLAMP",
+      "address_v": "CLAMP",
+      "max_in_game": 512,
+      "compression": "MASKS",
+      "srgb": "OFF",
+      "mip_gen": "NO_MIPMAPS",
+      "texture_group": "EFFECTS"
+    },
+    "nml": {
+      "address_u": "WRAP",
+      "address_v": "WRAP",
+      "max_in_game": "P1024",
+      "compression": "NORMAL_MAP",
+      "srgb": "OFF",
+      "texture_group": "WORLD"
+    }
   },
-  "suffix_index": ["texture_type", "address_suffix_2d"]
-}
-
-**suffix_indexの例**  
-- 有効な名前: **{Textureの名前}_col_cc** 
-- 無効な名前: **{Textureの名前}_ww_nrm** 
-
-```
-
----
-
-### DirectoryConfig.json — 実行対象パス
-
-**処理対象とする `/Game/...` のルート**を列挙します。
-ここに含まれないインポートは**早期リターン（スキップ）**します。
-
-**キー仕様**
-
-* `run_dir` : `string[]`（先頭は `/Game` で、末尾スラッシュは任意）
-
-**設定例**
-
-```json
-{
-  "run_dir": ["/Game/VFX", "/Game/Debug"]
+  "enable_subuv_texture_override": true,
+  "subuv_max_in_game": 256
 }
 ```
 
@@ -199,14 +169,14 @@
 * **何も起きない／適用されない**
 
   * インポート先が **`run_dir` 配下**か
-  * 3 つの JSON が **`{ProjectDir}/Config/TexNamingImporter/`** にあるか
+  * `Config.json` が **`{ProjectDir}/Config/TexNamingImporter/`** にあり、JSON が正しく記述されているか
   * Editor ログに JSON パースエラーや Python 実行エラーがないか
 
 * **サフィックス解釈エラー**
 
-  * ログの該当ファイル名とサフィックスを確認
-  * `SuffixSettings.json` のキー（`texture_type`, `address_suffix_2d/3d`）に**綴り漏れがないか**
-
+  * ログおよび表示されたダイアログで該当ファイル名とサフィックスを確認
+  * `Config.json` の `texture_type` / `address_suffix_2d` / `address_suffix_3d` に**綴り漏れがないか**
+  * 誤ったサフィックスのテクスチャは自動削除されるため、必要に応じてソースファイルから再インポートしてください
 
 ---
 
@@ -214,7 +184,7 @@
 
 1. **StartupModule**
 
-   * `{ProjectDir}/Config/TexNamingImporter/DirectorySettings.json` を読み込み
+   * `{ProjectDir}/Config/TexNamingImporter/Config.json` を読み込み
    * ImportSubsystem の `OnAssetPostImport` にリスナー登録
    * プラグインの Python スクリプト参照パスを解決
 
@@ -222,10 +192,11 @@
 
    * テクスチャのロングパッケージパス取得
    * **`run_dir` 配下でなければ即スキップ**
-   * 対象であれば Python（例: `import_texture_event.py`）を実行し、設定ロード→検証→適用
+   * 対象であれば Python（`texture_configurator.py`）を `--delete --dialog` 引数付きで実行し、設定ロード→検証→適用
 
-3. **Python 側（例: `import_texture_event.py`）**
+3. **Python 側（`texture_configurator.py`）**
 
-   * 引数: `TextureSettings.json` / `SuffixSettings.json` / `DirectorySettings.json` / `ObjectPath`
-   * `TextureSettings` と `SuffixSettings` を合成して適用パラメータを生成
-   * Unreal Python API で `UTexture` に反映し、必要に応じてアセット保存
+   * 引数: `Config.json` / `ObjectPath` / `--delete` / `--dialog`
+   * `Config.json` を読み込み、サフィックス検証と種類ごとのパラメータ生成を実施
+   * Unreal Python API で `UTexture` に反映し、サフィックスエラー時は削除、エラーがあればダイアログ表示
+
