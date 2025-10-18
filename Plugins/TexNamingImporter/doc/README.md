@@ -76,11 +76,11 @@ Editor 用プラグインです。サフィックス検証に失敗したテク�
 | キー | 型 | 説明 |
 | ---- | --- | --- |
 | `run_dir` | string[] | 処理対象とする `/Game/...` のルートパス一覧。ここに含まれないインポートはスキップされます。 |
-| `texture_type` | string[] | サフィックス判定に使用するテクスチャ種類。`texture_config` と対応させてください。 |
-| `suffix_index` | string[] | サフィックスの出現順・検索優先順位。例: `["texture_type", "address_suffix_2d"]` |
 | `address_suffix_2d` | object | `{ サフィックス: [U, V] }` の形で 2D アドレスモードを上書き。値は `WRAP` / `CLAMP` / `MIRROR` など。 |
 | `address_suffix_3d` *(任意)* | object | `{ サフィックス: [U, V, W] }` の形で 3D アドレスモードを上書き。3D テクスチャを扱うときに使用。 |
 | `texture_config` | object | テクスチャ種類ごとの既定設定。詳細は下記「texture_config の書式」を参照。 |
+| `texture_type` | string[] | サフィックス判定に使用するテクスチャ種類。基本的に`texture_config` の使用を推奨しますが、一部のtexture_configを無効につつconfigファイル状に残したい場合はここに使用するtexture_configのキーを指定することで使用するテクスチャの種類を制限できます |
+| `suffix_index` | string[] | サフィックス順序のルール指定。例: `["texture_type", "address_suffix_2d"]`の場合 : `textureの名前_{texture_typeの種類}_{address_suffix_2dのキー}`がサフィックスのルールとなります |
 | `enable_subuv_texture_override` *(任意)* | boolean | `true` で SubUV テクスチャ検知を有効化。`4x4` など `NxM` トークンが含まれる場合、`subuv_max_in_game` で上書き。 |
 | `subuv_max_in_game` *(任意)* | number / string | SubUV 検知時に使用する最大解像度。数値または `"AUTO"` / `"P2048"` など。 |
 
