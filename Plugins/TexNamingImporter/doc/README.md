@@ -70,7 +70,6 @@ Editor 用プラグインです。サフィックス検証に失敗したテク�
 ## 設定ファイル（Config.json）
 
 > `Config.json` は **UTF-8** で保存してください。
-> 旧バージョンで分割されていた 3 ファイル（Texture/Suffix/Directory）は **1 つの JSON** に統合されました。
 
 ### トップレベルキー
 
