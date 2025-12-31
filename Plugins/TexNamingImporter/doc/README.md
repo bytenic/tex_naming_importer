@@ -9,12 +9,12 @@
   - [セットアップ手順](#セットアップ手順)
   - [設定ファイル（Config.json）](#設定ファイルconfigjson)
     - [トップレベルキー](#トップレベルキー)
-    - [texture_config の書式](#texture_config-の書式)
+    - [`texture_config` の書式](#texture_config-の書式)
     - [サフィックス関連の書式](#サフィックス関連の書式)
     - [SubUV テクスチャ向け設定](#subuv-テクスチャ向け設定)
     - [設定ファイルの例](#設定ファイルの例)
   - [トラブルシューティング](#トラブルシューティング)
-  - [(エンジニア向け)動作の仕組み](#エンジニア向け動作の仕組み)
+  - [(エンジニア向け)動作の流れ](#エンジニア向け動作の流れ)
 
 ---
 
@@ -179,21 +179,21 @@ Editor 用プラグインです。サフィックス検証に失敗したテク�
 
 ---
 
-## (エンジニア向け)動作の仕組み
+## (エンジニア向け)動作の流れ
 
-1. **StartupModule**
+1. **StartupModule(c++)**
 
    * `{ProjectDir}/Config/TexNamingImporter/Config.json` を読み込み
    * ImportSubsystem の `OnAssetPostImport` にリスナー登録
    * プラグインの Python スクリプト参照パスを解決
 
-2. **OnAssetPostImport → HandleTexturePostImport(UTexture*)**
+2. **テクスチャインポート時: OnAssetPostImport → HandleTexturePostImport(c++)**
 
    * テクスチャのロングパッケージパス取得
    * **`run_dir` 配下でなければ即スキップ**
    * 対象であれば Python（`texture_configurator.py`）を `--delete --dialog` 引数付きで実行し、設定ロード→検証→適用
 
-3. **Python 側（`texture_configurator.py`）**
+3. **プロパティ適用（`texture_configurator.py`）**
 
    * 引数: `Config.json` / `ObjectPath` / `--delete` / `--dialog`
    * `Config.json` を読み込み、サフィックス検証と種類ごとのパラメータ生成を実施
