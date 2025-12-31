@@ -1,0 +1,88 @@
+{
+    "run_dir": ["/Game/VFX", "/Game/Debug"], 
+    "texture_type": [
+        "col", 
+        "msk", 
+        "nml", 
+        "mat", 
+        "cub", 
+        "flw"
+    ], 
+    "address_suffix_2d": {
+        "cc": ["CLAMP", "CLAMP"], 
+        "cw": ["CLAMP", "WRAP"], 
+        "cm": ["CLAMP", "MIRROR"], 
+        "wc": ["WRAP", "CLAMP"], 
+        "ww": ["WRAP", "WRAP"], 
+        "wm": ["WRAP", "MIRROR"], 
+        "mc": ["MIRROR", "CLAMP"], 
+        "mw": ["MIRROR", "WRAP"], 
+        "mm": ["MIRROR", "MIRROR"]
+    }, 
+    "suffix_index": ["texture_config", "address_suffix_2d"], 
+    "texture_config": {
+        "col": {
+            "address_u": "WRAP", 
+            "address_v": "WRAP", 
+            "max_in_game": 1024, 
+            "enforce_pow2": true, 
+            "compression": "BC7", 
+            "srgb": "ON", 
+            "mip_gen": "FROM_TEXTURE_GROUP", 
+            "texture_group": "EFFECTS"
+        }, 
+        "msk": {
+            "address_u": "WRAP", 
+            "address_v": "WRAP", 
+            "max_in_game": 1024, 
+            "enforce_pow2": true, 
+            "compression": "ALPHA", 
+            "srgb": "OFF", 
+            "mip_gen": "NO_MIPMAPS", 
+            "texture_group": "EFFECTS"
+        }, 
+        "nml": {
+            "address_u": "WRAP", 
+            "address_v": "WRAP", 
+            "max_in_game": 1024, 
+            "enforce_pow2": true, 
+            "compression": "NORMAL_MAP", 
+            "srgb": "OFF", 
+            "mip_gen": "FROM_TEXTURE_GROUP", 
+            "texture_group": "EFFECTS"
+        }, 
+        "mat": {
+            "address_u": "CLAMP", 
+            "address_v": "CLAMP", 
+            "max_in_game": 1024, 
+            "enforce_pow2": true, 
+            "compression": "DEFAULT", 
+            "srgb": "ON", 
+            "mip_gen": "FROM_TEXTURE_GROUP", 
+            "texture_group": "EFFECTS"
+        }, 
+        "cub": {
+            "address_u": "CLAMP", 
+            "address_v": "CLAMP", 
+            "max_in_game": 1024, 
+            "enforce_pow2": true, 
+            "compression": "HDR", 
+            "srgb": "OFF", 
+            "mip_gen": "FROM_TEXTURE_GROUP", 
+            "texture_group": "EFFECTS"
+        }, 
+        "flw": {
+            "address_u": "WRAP", 
+            "address_v": "WRAP", 
+            "max_in_game": 1024, 
+            "enforce_pow2": true, 
+            "compression": "MASKS", 
+            "srgb": "OFF", 
+            "mip_gen": "FROM_TEXTURE_GROUP", 
+            "texture_group": "EFFECTS"
+        }
+    },
+    "enable_subuv_texture_override": true,
+    "subuv_max_in_game": 2048
+    
+}

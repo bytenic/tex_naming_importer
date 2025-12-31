@@ -243,8 +243,8 @@ class Config:
                 raise ValueError(f"texture_config['{key}'] はオブジェクトで指定してください")
             params_map[key] = TextureConfigParams.from_dict(val)
 
-        enable_subuv_texture_override=bool(data.get("enable_subuv_texture_override", False)),
-        subuv_max_in_game = int(data.get("subuv_max_in_game"))
+        enable_subuv_texture_override = bool(data.get("enable_subuv_texture_override", False))
+        subuv_max_in_game = int(data.get("subuv_max_in_game", 2048))
 
         return cls(
             run_dir=list(run_dir),
