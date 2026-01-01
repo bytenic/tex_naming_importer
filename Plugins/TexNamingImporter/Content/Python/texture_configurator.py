@@ -1,3 +1,7 @@
+"""
+サフィックスと Config からテクスチャ設定を適用する CLI モジュール。
+"""
+
 import sys, argparse
 import traceback
 from pathlib import Path
@@ -21,6 +25,12 @@ from detail_unreal.texture_configurator_unreal import (
 SUBUV_PATTERN = r'^[1-9]\d*[xX][1-9]\d*$'  # 例: 8x8, 4x4, 1x8
 
 def build_parser() -> argparse.ArgumentParser:
+    """
+    コマンドライン引数のパーサを作成して返す。
+
+    Returns:
+        argparse.ArgumentParser: 設定済みの引数パーサ。
+    """
     parser = argparse.ArgumentParser(
         prog="texture_configurator",
         description=(
@@ -54,6 +64,16 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def get_address_settings_from_suffix(suffixes: List[str], config_data: Config):
+    """
+    サフィックスからアドレスモード（UV/UVW）の設定を決定する。
+
+    Args:
+        suffixes (List[str]): 対象テクスチャから抽出したサフィックス一覧。
+        config_data (Config): サフィックス設定を持つ Config。
+
+    Returns:
+        tuple: (AddressMode, AddressMode) の組。
+    """
     for suf in suffixes:
         if config_data.has_suffix_2d(suf):
             return config_data.get_uv(suf)
@@ -64,6 +84,16 @@ def get_address_settings_from_suffix(suffixes: List[str], config_data: Config):
 
 def get_texture_settings_from_suffixes(suffixes: List[str],
                                         texture_settings: Dict[str, TextureConfigParams]):
+    """
+    サフィックスに一致するテクスチャ設定を取得する。
+
+    Args:
+        suffixes (List[str]): 対象テクスチャから抽出したサフィックス一覧。
+        texture_settings (Dict[str, TextureConfigParams]): サフィックス別設定の辞書。
+
+    Returns:
+        TextureConfigParams: 一致した設定。該当がなければデフォルト値。
+    """
     for suf in suffixes:
         if suf in texture_settings:
             return texture_settings[suf]
@@ -73,6 +103,17 @@ def get_texture_settings_from_suffixes(suffixes: List[str],
 def build_texture_config_params(suffixes: List[str],
                                 tex_settings_dict: Dict[str, TextureConfigParams],
                                 config_data: Config)-> TextureConfigParams:
+    """
+    サフィックスと Config を元に最終的な設定値を生成する。
+
+    Args:
+        suffixes (List[str]): 対象テクスチャから抽出したサフィックス一覧。
+        tex_settings_dict (Dict[str, TextureConfigParams]): サフィックス別設定の辞書。
+        config_data (Config): UV/UVW などのアドレス設定を含む Config。
+
+    Returns:
+        TextureConfigParams: アドレス設定を反映した最終設定。
+    """
     base_settings = get_texture_settings_from_suffixes(suffixes, tex_settings_dict)
     # 現状はTex2Dのみ対応
     print(f"Base settings from suffixes: {base_settings}")
@@ -86,6 +127,18 @@ def apply_texture_property_from_config(
     delete_on_suffix_error: bool = False,
     show_dialog_on_error: bool = False,
 ) -> int:
+    """
+    設定を適用し、エラー時は削除やダイアログ表示を行う。
+
+    Args:
+        texture_list (List[str]): Unreal のテクスチャパス一覧。
+        config_data (Config): サフィックス規則と設定を含む Config。
+        delete_on_suffix_error (bool): サフィックス不正時に削除を試みるか。
+        show_dialog_on_error (bool): エラー時にダイアログを表示するか。
+
+    Returns:
+        int: 終了コード。通常は 0。
+    """
     suffix_grid = config_data.build_suffix_grid()
     #print(f'suffix:{suffix_grid}')
     all_suffixes = [suf for row in suffix_grid for suf in row]
