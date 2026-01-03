@@ -2,6 +2,23 @@
 marp: true
 theme: default
 class: invert
+backgroundImage: 
+size: 16:9
+paginate: true
+style: |
+  section {
+    background-image:
+      linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)),
+      url('img/background.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+
+  section:not(.keep-size) ul,
+  section:not(.keep-size) ol,
+  section:not(.keep-size) li {
+    font-size: 20pt;
+  }
 ---
 
 # Textureのプロパティ設定ツールを作った話
