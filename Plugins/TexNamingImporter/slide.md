@@ -38,11 +38,9 @@ style: |
 - Mip設定
 - テクスチャグループ
 - SubUV使用時の最大解像度
----
-## 設定の適用はテクスチャファイル名のサフィックスから
 
 ---
-## 設定はjsonファイルに記載
+## 設定をjsonファイルに記述して
 ```
    "texture_config": {
         "col": {
@@ -67,11 +65,18 @@ style: |
         }
    }
 ```
-
 ---
 
-# ポイント
+## ファイルにサフィックスを設定すると
+![image](img/filepath.png)
 
+---
+<div style="text-align:center;">
+  <video src="img/demo.mp4" controls style="width:60%; height:auto;"></video>
+</div>
+
+---
+# ポイント
 
 ---
 
