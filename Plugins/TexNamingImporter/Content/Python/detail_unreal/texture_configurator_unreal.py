@@ -108,22 +108,23 @@ class TextureConfigurator:
 
     # ---------- Unreal 変換（アダプタ） ----------
     @staticmethod
-    def _ua(addr: AddressMode):
-        E = unreal.TextureAddress
-        if addr is AddressMode.WRAP:
+    def _to_unreal_texture_address(address_mode: AddressMode):
+        unreal_texture_address = unreal.TextureAddress
+        if address_mode is AddressMode.WRAP:
             for n in ("WRAP", "TA_WRAP"):
-                if hasattr(E, n): return getattr(E, n)
-        if addr is AddressMode.CLAMP:
+                if hasattr(unreal_texture_address, n): return getattr(unreal_texture_address, n)
+        if address_mode is AddressMode.CLAMP:
             for n in ("CLAMP", "TA_CLAMP"):
-                if hasattr(E, n): return getattr(E, n)
-        if addr is AddressMode.MIRROR:
+                if hasattr(unreal_texture_address, n): return getattr(unreal_texture_address, n)
+        if address_mode is AddressMode.MIRROR:
             for n in ("MIRROR", "TA_MIRROR"):
-                if hasattr(E, n): return getattr(E, n)
-        raise RuntimeError(f"Unsupported AddressMode on this engine build: {addr}")
+                if hasattr(unreal_texture_address, n): return getattr(unreal_texture_address, n)
+        raise RuntimeError(f"Unsupported AddressMode on this engine build: {address_mode}")
 
     @staticmethod
-    def _uc(kind: CompressionKind):
-        E = unreal.TextureCompressionSettings
+    def _to_unreal_compression_setting(compression_kind: CompressionKind):
+        unreal_compression_settings = unreal.TextureCompressionSettings
+        kind = compression_kind
         table = {
             CompressionKind.DEFAULT:             ("DEFAULT", "TC_DEFAULT"),
             CompressionKind.NORMAL_MAP:          ("NORMALMAP", "TC_NORMALMAP"),
@@ -142,14 +143,15 @@ class TextureConfigurator:
             ),
         }
         for name in table[kind]:
-            if hasattr(E, name):
-                return getattr(E, name)
+            if hasattr(unreal_compression_settings, name):
+                return getattr(unreal_compression_settings, name)
         raise RuntimeError(f"Unsupported CompressionKind on this engine build: {kind}")
     
     @staticmethod
-    def _um(kind: MipGenKind):
+    def _to_unreal_mip_gen_setting(mip_gen_kind: MipGenKind):
         """MipGenKind -> unreal.TextureMipGenSettings"""
-        E = unreal.TextureMipGenSettings
+        unreal_mip_gen_settings = unreal.TextureMipGenSettings
+        kind = mip_gen_kind
         # 候補名（UEバージョン差吸収）
         table = {
             MipGenKind.FROM_TEXTURE_GROUP: ("FROM_TEXTURE_GROUP", "TMGS_FROM_TEXTURE_GROUP"),
@@ -167,14 +169,15 @@ class TextureConfigurator:
         }
         names = table.get(kind, ())
         for n in names:
-            if hasattr(E, n):
-                return getattr(E, n)
+            if hasattr(unreal_mip_gen_settings, n):
+                return getattr(unreal_mip_gen_settings, n)
         raise RuntimeError(f"Unsupported MipGenKind on this engine build: {kind}")
 
     @staticmethod
-    def _utg(kind: TextureGroupKind):
+    def _to_unreal_texture_group(texture_group_kind: TextureGroupKind):
         """TextureGroupKind -> unreal.TextureGroup"""
-        E = unreal.TextureGroup
+        unreal_texture_group = unreal.TextureGroup
+        kind = texture_group_kind
         table = {
             TextureGroupKind.WORLD:                 ("TEXTUREGROUP_WORLD", "WORLD"),
             TextureGroupKind.WORLD_NORMAL_MAP:      ("TEXTUREGROUP_WORLD_NORMAL_MAP", "WORLD_NORMAL_MAP"),
@@ -193,8 +196,8 @@ class TextureConfigurator:
         }
         names = table.get(kind, ())
         for n in names:
-            if hasattr(E, n):
-                return getattr(E, n)
+            if hasattr(unreal_texture_group, n):
+                return getattr(unreal_texture_group, n)
         raise RuntimeError(f"Unsupported TextureGroupKind on this engine build: {kind}")
 
     @staticmethod
@@ -206,18 +209,20 @@ class TextureConfigurator:
         raise TypeError("max_in_game must be int or SizePreset")
 
     @staticmethod
-    def _auto_srgb_from_compression_unreal(cs: unreal.TextureCompressionSettings) -> bool:
-        E = unreal.TextureCompressionSettings
-        if cs == getattr(E, "TC_NORMALMAP", object()): return False
-        if cs == getattr(E, "TC_MASKS", object()): return False
-        if cs == getattr(E, "TC_GRAYSCALE", object()): return False
-        if cs == getattr(E, "TC_HDR", object()): return False
-        if cs == getattr(E, "TC_ALPHA", object()): return False
-        if cs == getattr(E, "TC_DISTANCE_FIELD_FONT", object()): return False
-        if cs == getattr(E, "TC_VECTOR_DISPLACEMENTMAP", object()): return False
-        if cs == getattr(E, "TC_VECTOR_DISPLACEMENT_MAP", object()): return False
-        if cs == getattr(E, "TC_EDITORICON", object()): return True
-        if cs == getattr(E, "TC_BC7", object()): return True
+    def _auto_srgb_from_compression_unreal(
+        compression_setting: unreal.TextureCompressionSettings,
+    ) -> bool:
+        unreal_compression_settings = unreal.TextureCompressionSettings
+        if compression_setting == getattr(unreal_compression_settings, "TC_NORMALMAP", object()): return False
+        if compression_setting == getattr(unreal_compression_settings, "TC_MASKS", object()): return False
+        if compression_setting == getattr(unreal_compression_settings, "TC_GRAYSCALE", object()): return False
+        if compression_setting == getattr(unreal_compression_settings, "TC_HDR", object()): return False
+        if compression_setting == getattr(unreal_compression_settings, "TC_ALPHA", object()): return False
+        if compression_setting == getattr(unreal_compression_settings, "TC_DISTANCE_FIELD_FONT", object()): return False
+        if compression_setting == getattr(unreal_compression_settings, "TC_VECTOR_DISPLACEMENTMAP", object()): return False
+        if compression_setting == getattr(unreal_compression_settings, "TC_VECTOR_DISPLACEMENT_MAP", object()): return False
+        if compression_setting == getattr(unreal_compression_settings, "TC_EDITORICON", object()): return True
+        if compression_setting == getattr(unreal_compression_settings, "TC_BC7", object()): return True
         return True
 
     def apply(self, path_name: str) -> Dict[str, Union[bool, List[str]]]:
@@ -228,7 +233,7 @@ class TextureConfigurator:
         - 各ステップの例外を収集して返す
         """
         texture = _get_texture_from_path(path_name)
-        p = self.params
+        params = self.params
         report = {"ok": True, "applied": [], "errors": []}
         revert_actions: List[Callable[[], None]] = []
 
@@ -258,22 +263,22 @@ class TextureConfigurator:
             texture.modify()
 
             # 1) Address
-            if p.address_u is not None and p.address_v is not None:
+            if params.address_u is not None and params.address_v is not None:
                 try:
-                    _set_attr("address_x", self._ua(p.address_u))
-                    _set_attr("address_y", self._ua(p.address_v))
-                    if p.address_z is not None and hasattr(texture, "address_z"):
-                        _set_attr("address_z", self._ua(p.address_z))
+                    _set_attr("address_x", self._to_unreal_texture_address(params.address_u))
+                    _set_attr("address_y", self._to_unreal_texture_address(params.address_v))
+                    if params.address_z is not None and hasattr(texture, "address_z"):
+                        _set_attr("address_z", self._to_unreal_texture_address(params.address_z))
                     report["applied"].append("address")
                 except Exception as e:
                     report["ok"] = False
                     report["errors"].append(f"address: {e}")
 
             # 2) Max In-Game
-            if p.max_in_game is not None:
+            if params.max_in_game is not None:
                 try:
-                    size = self._size_to_int(p.max_in_game)
-                    if p.enforce_pow2 and size > 0:
+                    size = self._size_to_int(params.max_in_game)
+                    if params.enforce_pow2 and size > 0:
                         size = 1 << int(math.log2(size))
                     if size > 0:
                         size = max(16, min(size, 16384))
@@ -287,24 +292,24 @@ class TextureConfigurator:
                     report["errors"].append(f"max_in_game: {e}")
 
             # 3) Compression（sRGB AUTO 参照元）
-            if p.compression is not None:
+            if params.compression is not None:
                 try:
-                    _set_attr("compression_settings", self._uc(p.compression))
+                    _set_attr("compression_settings", self._to_unreal_compression_setting(params.compression))
                     report["applied"].append("compression")
                 except Exception as e:
                     report["ok"] = False
                     report["errors"].append(f"compression: {e}")
 
             # 4) sRGB
-            if p.srgb is not None:
+            if params.srgb is not None:
                 try:
-                    if p.srgb is SRGBMode.AUTO:
-                        cs = getattr(texture, "compression_settings", None)
-                        if not isinstance(cs, unreal.TextureCompressionSettings):
+                    if params.srgb is SRGBMode.AUTO:
+                        compression_setting = getattr(texture, "compression_settings", None)
+                        if not isinstance(compression_setting, unreal.TextureCompressionSettings):
                             raise RuntimeError("failed to read compression_settings for AUTO sRGB")
-                        desired = self._auto_srgb_from_compression_unreal(cs)
+                        desired = self._auto_srgb_from_compression_unreal(compression_setting)
                     else:
-                        desired = (p.srgb is SRGBMode.ON)
+                        desired = (params.srgb is SRGBMode.ON)
 
                     if hasattr(texture, "srgb"):
                         _set_attr("srgb", bool(desired))
@@ -317,9 +322,9 @@ class TextureConfigurator:
 
             # 5) TextureGroup（LODGroup
             try:
-                tg = self._utg(p.texture_group)
+                texture_group = self._to_unreal_texture_group(params.texture_group)
                 # C++プロパティ名は LODGroup。Python では set_editor_property が確実。
-                _set_editor_property("LODGroup", tg)
+                _set_editor_property("LODGroup", texture_group)
                 report["applied"].append("texture_group")
             except Exception as e:
                 report["ok"] = False
@@ -327,8 +332,8 @@ class TextureConfigurator:
 
             # === 6) MipGenSettings ===
             try:
-                mg = self._um(p.mip_gen)
-                _set_editor_property("MipGenSettings", mg)
+                mip_gen_setting = self._to_unreal_mip_gen_setting(params.mip_gen)
+                _set_editor_property("MipGenSettings", mip_gen_setting)
                 report["applied"].append("mip_gen")
             except Exception as e:
                 report["ok"] = False
