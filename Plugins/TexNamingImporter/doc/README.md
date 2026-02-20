@@ -93,7 +93,7 @@ Editor 用プラグインです。サフィックス検証に失敗したテク�
 | `address_u` / `address_v` / `address_z` *(任意)* | string | `WRAP` / `CLAMP` / `MIRROR` | テクスチャアドレスモード（U/V/W）。`address_suffix_*` で上書き可能。 | 3D テクスチャは `address_z` を利用。 |
 | `max_in_game` | number/string  | 0（無制限） / 256 / 512 / … / `"AUTO"` / | ゲーム内最大解像度（px）。 | `0` または `"AUTO"` は無制限扱い。 |
 | `enforce_pow2` | boolean | `true` / `false` | サイズを 2 の冪に正規化（丸め）。 |  |
-| `compression` | string | `BC7` / `MASKS` / `NORMAL_MAP` / `HDR` / `ALPHA` / `GRAYSCALE` / `EDITOR_ICON` / `DISTANCE_FIELD_FONT` / `DEFAULT` など | 圧縮設定名。 | Unreal Engine の列挙値に準拠。 |
+| `compression` | string | `BC7` / `MASKS` / `NORMAL_MAP` / `VECTOR_DISPLACEMENT_MAP` / `HDR` / `ALPHA` / `GRAYSCALE` / `EDITOR_ICON` / `DISTANCE_FIELD_FONT` / `DEFAULT` など | 圧縮設定名。 | Unreal Engine の列挙値に準拠。 |
 | `srgb` | string | `ON` / `OFF` / `AUTO` | sRGB フラグの扱い。 | `AUTO` は設定推測。可能なら明示指定を推奨。 |
 | `mip_gen` | string | `FROM_TEXTURE_GROUP` / `NO_MIPMAPS` / `SIMPLE_AVERAGE` / `SHARPEN0`〜`SHARPEN8` | `TextureMipGenSettings` の指定。 | 無効値はエラー。 |
 | `texture_group` | string | `WORLD` / `WORLD_NORMAL_MAP` / `WORLD_SPECULAR` / `CHARACTER` / `CHARACTER_NORMAL_MAP` / `CHARACTER_SPECULAR` / `UI` / `LIGHTMAP` / `SHADOWMAP` / `SKYBOX` / `VEHICLE` / `CINEMATIC` / `EFFECTS` / `MEDIA` など | `TextureGroup` の指定。 | エンジンビルドにより利用可能なグループが異なる場合があります。 |

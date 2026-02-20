@@ -134,6 +134,12 @@ class TextureConfigurator:
             CompressionKind.EDITOR_ICON:         ("EDITORICON", "TC_EDITORICON"),
             CompressionKind.DISTANCE_FIELD_FONT: ("DISTANCE_FIELD_FONT", "TC_DISTANCE_FIELD_FONT"),
             CompressionKind.BC7:                 ("BC7", "TC_BC7"),
+            CompressionKind.VECTOR_DISPLACEMENT_MAP: (
+                "VECTOR_DISPLACEMENTMAP",
+                "VECTOR_DISPLACEMENT_MAP",
+                "TC_VECTOR_DISPLACEMENTMAP",
+                "TC_VECTOR_DISPLACEMENT_MAP",
+            ),
         }
         for name in table[kind]:
             if hasattr(E, name):
@@ -208,6 +214,8 @@ class TextureConfigurator:
         if cs == getattr(E, "TC_HDR", object()): return False
         if cs == getattr(E, "TC_ALPHA", object()): return False
         if cs == getattr(E, "TC_DISTANCE_FIELD_FONT", object()): return False
+        if cs == getattr(E, "TC_VECTOR_DISPLACEMENTMAP", object()): return False
+        if cs == getattr(E, "TC_VECTOR_DISPLACEMENT_MAP", object()): return False
         if cs == getattr(E, "TC_EDITORICON", object()): return True
         if cs == getattr(E, "TC_BC7", object()): return True
         return True

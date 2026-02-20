@@ -17,6 +17,7 @@ class CompressionKind(Enum):
     EDITOR_ICON = 6
     DISTANCE_FIELD_FONT = 7
     BC7 = 8
+    VECTOR_DISPLACEMENT_MAP = 9
 
 
 class SRGBMode(Enum):

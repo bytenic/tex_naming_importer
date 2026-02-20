@@ -76,7 +76,7 @@
             "address_v": "WRAP", 
             "max_in_game": 1024, 
             "enforce_pow2": true, 
-            "compression": "MASKS", 
+            "compression": "VECTOR_DISPLACEMENT_MAP", 
             "srgb": "OFF", 
             "mip_gen": "FROM_TEXTURE_GROUP", 
             "texture_group": "EFFECTS"
