@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -37,6 +37,8 @@ public class TexNamingImporter : ModuleRules
 				"Projects",
 				"InputCore",
 				"EditorFramework",
+				"Blutility",
+				"UMG",
 				"UnrealEd",
 				"ToolMenus",
 				"CoreUObject",
