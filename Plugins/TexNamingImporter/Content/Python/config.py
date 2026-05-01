@@ -162,6 +162,7 @@ class Config:
       - address_suffix_3d  : Dict[str, [U,V,W]]（任意）… 3D 用のサフィックス→(U,V,W) 対応表
       - suffix_index       : List[str]        … サフィックス検索順や優先度の定義
       - texture_config     : Dict[str, TextureConfigParams 相当の dict]
+      - ignore_import_suffix: Optional[str]   … 末尾一致時に命名規則チェックと設定適用をスキップ
     """
     run_dir: List[str] = field(default_factory=list)
 
@@ -173,6 +174,8 @@ class Config:
 
     # テクスチャタイプごとの詳細設定
     texture_config: Dict[str, TextureConfigParams] = field(default_factory=dict)
+
+    ignore_import_suffix: Optional[str] = None
 
     enable_subuv_texture_override: bool = False
     subuv_max_in_game: NumericSize = 2048
@@ -243,6 +246,10 @@ class Config:
                 raise ValueError(f"texture_config['{key}'] はオブジェクトで指定してください")
             params_map[key] = TextureConfigParams.from_dict(val)
 
+        ignore_import_suffix = data.get("ignore_import_suffix")
+        if ignore_import_suffix is not None and not isinstance(ignore_import_suffix, str):
+            raise ValueError("'ignore_import_suffix' は str または null で指定してください")
+
         enable_subuv_texture_override = bool(data.get("enable_subuv_texture_override", False))
         subuv_max_in_game = int(data.get("subuv_max_in_game", 2048))
 
@@ -253,6 +260,7 @@ class Config:
             address_suffix_3d=map3d,
             suffix_index=list(suf_index),
             texture_config=params_map,
+            ignore_import_suffix=ignore_import_suffix,
             enable_subuv_texture_override=enable_subuv_texture_override,
             subuv_max_in_game=subuv_max_in_game
         )
@@ -269,6 +277,8 @@ class Config:
             out["address_suffix_2d"] = {k: [u.name, v.name] for k, (u, v) in self.address_suffix_2d.items()}
         if self.address_suffix_3d:
             out["address_suffix_3d"] = {k: [u.name, v.name, w.name] for k, (u, v, w) in self.address_suffix_3d.items()}
+        if self.ignore_import_suffix is not None:
+            out["ignore_import_suffix"] = self.ignore_import_suffix
         
         if self.enable_subuv_texture_override:
             out["enable_subuv_texture_override"] = self.enable_subuv_texture_override

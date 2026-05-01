@@ -145,6 +145,15 @@ def apply_texture_property_from_config(
     #print(config_data)
     for tex_path in texture_list:
         print(f"---import begin  {tex_path} ---")
+        ignore_import_suffix = config_data.ignore_import_suffix
+        if ignore_import_suffix is not None and has_trailing_suffix_token(tex_path, ignore_import_suffix):
+            print(
+                "Import settings skipped: "
+                f"ignore_import_suffix '{ignore_import_suffix}' matched trailing suffix"
+            )
+            print(f"---import end  {tex_path} ---")
+            continue
+
         suffixes,tokens = collect_suffixes_from_path(tex_path, all_suffixes)
         #print(f"collected suffixes: {suffixes}")
         print(tokens)

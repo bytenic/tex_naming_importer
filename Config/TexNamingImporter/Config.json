@@ -83,6 +83,7 @@
         }
     },
     "enable_subuv_texture_override": true,
-    "subuv_max_in_game": 2048
+    "subuv_max_in_game": 2048,
+    "ignore_import_suffix": "raw"
     
 }

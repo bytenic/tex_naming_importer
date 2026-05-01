@@ -81,6 +81,7 @@ Editor 用プラグインです。サフィックス検証に失敗したテク�
 | `texture_config` | object | テクスチャ種類ごとの既定設定。詳細は下記「texture_config の書式」を参照。 |
 | `texture_type` | string[] | サフィックス判定に使用するテクスチャ種類。基本的に`texture_config` のキーをそのまま記載してください。一部のtexture_configを無効につつconfigファイル状に残したい場合はここに使用するtexture_configのキーを指定することで使用するテクスチャの種類を制限できます |
 | `suffix_index` | string[] | サフィックス順序のルール指定。例: `["texture_type", "address_suffix_2d"]`の場合 : `textureの名前_{texture_typeの種類}_{address_suffix_2dのキー}`がサフィックスのルールとなります |
+| `ignore_import_suffix` *(任意)* | string/null | 指定したサフィックスがテクスチャ名の最末尾にある場合、このツールによる命名規則チェックとプロパティ適用を行いません。未指定または `null` の場合は通常処理を行います。 |
 | `enable_subuv_texture_override` *(任意)* | boolean | `true` で SubUV テクスチャ検知を有効化。`4x4` など `NxM` トークンが含まれる場合、`subuv_max_in_game` で上書き。 |
 | `subuv_max_in_game` *(任意)* | number | SubUV 検知時に使用する最大解像度。数値を入力してください / `2048` など。 |
 
@@ -103,11 +104,19 @@ Editor 用プラグインです。サフィックス検証に失敗したテク�
 * `texture_type` はテクスチャ種別を列挙します。例: `"col"`, `"msk"`, `"nml"` など。
 * `suffix_index` でサフィックスの読み取り順を定義します。例: `[{Texture名}_{texture_type}_{address_suffix_2d}]` の順。
 * `address_suffix_2d` / `address_suffix_3d` にサフィックス→アドレスモードを記述します。
+* `ignore_import_suffix` に指定した値がファイル名末尾の `_サフィックス` と一致した場合、そのテクスチャは命名規則チェック、サフィックスエラー時の削除、プロパティ適用をすべてスキップします。手動でテクスチャプロパティを設定したい場合に使用します。
 
 **suffix_index の例**
 
 - 有効な名前: **{Texture名}_col_cc**
 - 無効な名前: **{Texture名}_ww_nrm**（`suffix_index` に沿っていない）
+
+**ignore_import_suffix の例**
+
+`"ignore_import_suffix": "raw"` の場合、以下の名前は通常インポート後にこのツールの処理を受けません。
+
+- **{Texture名}_raw**
+- **{Texture名}_col_raw**
 
 ### SubUV テクスチャ向け設定
 
@@ -157,6 +166,7 @@ Editor 用プラグインです。サフィックス検証に失敗したテク�
     }
   },
   "enable_subuv_texture_override": true,
+  "ignore_import_suffix": "raw",
   "subuv_max_in_game": 256
 }
 ```
@@ -197,5 +207,6 @@ Editor 用プラグインです。サフィックス検証に失敗したテク�
 
    * 引数: `Config.json` / `ObjectPath` / `--delete` / `--dialog`
    * `Config.json` を読み込み、サフィックス検証と種類ごとのパラメータ生成を実施
+   * `ignore_import_suffix` が設定され、テクスチャ名の最末尾サフィックスに一致する場合は命名規則チェックとプロパティ適用をスキップ
    * Unreal Python API で `UTexture` に反映し、サフィックスエラー時は削除、エラーがあればダイアログ表示
 

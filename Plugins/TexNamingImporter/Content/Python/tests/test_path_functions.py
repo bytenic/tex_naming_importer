@@ -7,7 +7,7 @@ PYTHON_DIR = THIS_FILE.parents[1]
 if str(PYTHON_DIR) not in sys.path:
     sys.path.insert(0, str(PYTHON_DIR))
 
-from path_utils.path_functions import collect_suffixes_from_path
+from path_utils.path_functions import collect_suffixes_from_path, has_trailing_suffix_token
 
 SUFFIX_ARRAY = ["cc","cw","cm","wc","ww","wm","mc","mw","mm","col","msk","nml","mat","cub","flw"]
 
@@ -65,6 +65,16 @@ class TestCollectSuffixesFromPath(unittest.TestCase):
             with self.subTest(path=path):
                 suffix, tokens = collect_suffixes_from_path(path, SUFFIX_ARRAY)
                 self.assertEqual(suffix, expected)
+
+    def test_has_trailing_suffix_token(self):
+        cases = [
+            ("/Game/VFX/T_Smoke_col_manual.T_Smoke_col_manual", "manual", True),
+            ("/home/dev/tex/T_Smoke_col_manual.png", "manual", True),
+            ("/home/dev/tex/T_Smoke_manual_col.png", "manual", False),
+        ]
+        for path, suffix, expected in cases:
+            with self.subTest(path=path, suffix=suffix):
+                self.assertEqual(has_trailing_suffix_token(path, suffix), expected)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,25 @@
 import os
 from typing import List, Sequence
 
+
+def _path_stem_tokens(src_path: str) -> List[str]:
+    base = os.path.basename(str(src_path).replace("\\", "/"))
+    stem, _ext = os.path.splitext(base)
+    if not stem:
+        return []
+    return [t for t in stem.split('_') if t != '']
+
+
+def has_trailing_suffix_token(src_path: str, suffix: str) -> bool:
+    """
+    与えられたパスのファイル名末尾トークンが suffix と一致するかを返す。
+
+    Unreal のオブジェクトパス（例: /Game/T_Name_manual.T_Name_manual）でも、
+    拡張子扱いになる .ObjectName を除いた左側の名前で判定する。
+    """
+    tokens = _path_stem_tokens(src_path)
+    return bool(tokens and tokens[-1] == suffix)
+
 def collect_suffixes_from_path(src_path: str, suffix_array: Sequence[str]) -> (List[str], List[str]):
     """
     与えられたパスのファイル名から、末尾側に連続して並ぶサフィックス群を抽出して返す。
@@ -26,12 +45,7 @@ def collect_suffixes_from_path(src_path: str, suffix_array: Sequence[str]) -> (L
 
     suffix_set = set(suffix_array)
 
-    base = os.path.basename(src_path)
-    stem, _ext = os.path.splitext(base)
-    if not stem:
-        return ([],[])
-
-    tokens = [t for t in stem.split('_') if t != '']
+    tokens = _path_stem_tokens(src_path)
     if not tokens:
         return ([],[])
 
