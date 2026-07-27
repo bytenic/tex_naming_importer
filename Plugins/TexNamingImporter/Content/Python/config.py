@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 import json
@@ -349,26 +349,21 @@ class Config:
 
 def override_address_uv(params: TextureConfigParams, u: AddressMode, v: AddressMode) -> TextureConfigParams:
     """
-    TextureConfigParams の address_u / address_v を“破壊的（in-place）”に上書きします。
-    clear_z=True の場合、address_z を None にクリアします（3D/Cube等でU/Vのみ使いたいときに便利）。
-    戻り値は同じインスタンス（チェーン用に返すだけ）。
+    TextureConfigParams の address_u / address_v を“上書きした新規インスタンスを返します。
     """
     if not isinstance(params, TextureConfigParams):
         raise TypeError("params must be TextureConfigParams")
     if not isinstance(u, AddressMode) or not isinstance(v, AddressMode):
         raise TypeError("u, v must be AddressMode")
 
-    params.address_u = u
-    params.address_v = v
-    return params
+
+    return replace(params, address_u=u, address_v=v)
 
 def override_subuv_max_in_game(params: TextureConfigParams, max_in_game: NumericSize) -> TextureConfigParams:
     """
-    TextureConfigParams の max_in_game を“破壊的（in-place）”に上書きします。
-    戻り値は同じインスタンス（チェーン用に返すだけ）。
+    TextureConfigParams の max_in_game をに上書きした新規インスタンスを返します。
     """
     if not isinstance(params, TextureConfigParams):
         raise TypeError("params must be TextureConfigParams")
     
-    params.max_in_game = TextureConfigParams._size_to_int(max_in_game)
-    return params
+    return replace(params, max_in_game=TextureConfigParams._size_to_int(max_in_game))

@@ -8,7 +8,13 @@ PYTHON_DIR = THIS_FILE.parents[1]
 if str(PYTHON_DIR) not in sys.path:
     sys.path.insert(0, str(PYTHON_DIR))
 
-from config import Config
+from config import (
+    Config,
+    TextureConfigParams,
+    override_address_uv,
+    override_subuv_max_in_game,
+)
+from type_define import AddressMode
 
 
 class TestConfig(unittest.TestCase):
@@ -47,6 +53,28 @@ class TestConfig(unittest.TestCase):
 
         self.assertEqual(cfg.ignore_import_suffix, "manual")
         self.assertEqual(cfg.to_dict()["ignore_import_suffix"], "manual")
+
+    def test_subuv_override_does_not_mutate_shared_base_settings(self):
+        """SubUV override must not leak into the following non-SubUV texture."""
+        base_settings = TextureConfigParams(
+            address_u=AddressMode.WRAP,
+            address_v=AddressMode.WRAP,
+            max_in_game=4096,
+        )
+
+        subuv_settings = override_subuv_max_in_game(
+            override_address_uv(base_settings, AddressMode.CLAMP, AddressMode.CLAMP),
+            2048,
+        )
+
+        self.assertEqual(subuv_settings.max_in_game, 2048)
+        self.assertEqual(subuv_settings.address_u, AddressMode.CLAMP)
+        self.assertEqual(subuv_settings.address_v, AddressMode.CLAMP)
+
+        # texture_config 内で共有される元設定は、次の通常テクスチャにも使われる。
+        self.assertEqual(base_settings.max_in_game, 4096)
+        self.assertEqual(base_settings.address_u, AddressMode.WRAP)
+        self.assertEqual(base_settings.address_v, AddressMode.WRAP)
 
 
 if __name__ == "__main__":
